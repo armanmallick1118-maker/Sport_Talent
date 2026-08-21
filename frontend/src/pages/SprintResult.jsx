@@ -20,7 +20,8 @@ export default function SprintResult() {
 
       try {
         setLoading(true);
-        const res = await axios.get(`/ml/api/v1/results/${sessionId}`);
+        const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+        const res = await axios.get(`${aiBaseUrl}/api/v1/results/${sessionId}`);
         const data = res.data;
         
         if (data.status !== 'completed') {

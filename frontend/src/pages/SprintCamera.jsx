@@ -81,7 +81,8 @@ export default function SprintCamera() {
     formData.append('file', blob, 'sprint.webm');
 
     try {
-      const uploadRes = await axios.post('/ml/api/v1/upload', formData, {
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const sessionId = uploadRes.data.session_id;
@@ -89,7 +90,8 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing motion (this may take a few seconds)...');
-      await axios.post(`/ml/api/v1/process?session_id=${sessionId}`);
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {
@@ -114,7 +116,8 @@ export default function SprintCamera() {
     formData.append('file', file);
 
     try {
-      const uploadRes = await axios.post('/ml/api/v1/upload', formData, {
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const sessionId = uploadRes.data.session_id;
@@ -122,7 +125,8 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing uploaded motion (this may take a few seconds)...');
-      await axios.post(`/ml/api/v1/process?session_id=${sessionId}`);
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {
