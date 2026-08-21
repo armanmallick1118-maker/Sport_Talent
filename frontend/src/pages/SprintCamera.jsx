@@ -90,7 +90,6 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing motion (this may take a few seconds)...');
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
       await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
 
       setProgressStatus('Analysis complete! Redirecting...');
@@ -125,7 +124,6 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing uploaded motion (this may take a few seconds)...');
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
       await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
 
       setProgressStatus('Analysis complete! Redirecting...');
