@@ -20,7 +20,7 @@ export default function SprintResult() {
 
       try {
         setLoading(true);
-        const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+        const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://soprttelent-production-8ca6.up.railway.app';
         const res = await axios.get(`${aiBaseUrl}/api/v1/results/${sessionId}`);
         const data = res.data;
         

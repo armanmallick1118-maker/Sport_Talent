@@ -81,7 +81,7 @@ export default function SprintCamera() {
     formData.append('file', blob, 'sprint.webm');
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://soprttelent-production-8ca6.up.railway.app';
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -115,7 +115,7 @@ export default function SprintCamera() {
     formData.append('file', file);
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://soprttelent-production-8ca6.up.railway.app';
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
