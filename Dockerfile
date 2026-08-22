@@ -1,5 +1,8 @@
 # Root Dockerfile for Backend Deployment on Railway
-FROM node:18-alpine
+FROM node:18-bullseye-slim
+
+# Install OpenSSL (required by Prisma)
+RUN apt-get update -y && apt-get install -y openssl
 
 WORKDIR /app
 
