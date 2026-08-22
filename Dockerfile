@@ -3,8 +3,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package config from backend folder
+# Copy package config and prisma schema from backend folder
 COPY backend/package.json backend/package-lock.json* ./
+COPY backend/prisma ./prisma
 
 # Install dependencies
 RUN npm ci || npm install
