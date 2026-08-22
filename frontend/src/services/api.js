@@ -1,5 +1,4 @@
 import axios from "axios";
-import { getAuth } from "firebase/auth";
 
 const API = axios.create({
   baseURL:
@@ -10,21 +9,13 @@ const API = axios.create({
   },
 });
 
+// Attach the real JWT token from the backend to every request
 API.interceptors.request.use(
-  async (config) => {
-    try {
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-
-      if (currentUser) {
-        // Retrieve fresh Firebase ID token
-        const token = await currentUser.getIdToken();
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.warn("Firebase Auth not initialized yet or user unauthenticated:", error.message);
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token && token !== "active") {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error)

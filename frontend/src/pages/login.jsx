@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
+import API from '../services/api';
 
 const field =
   'w-full rounded-xl border border-slate-700/80 bg-[#111827] py-3 pl-11 pr-11 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-blue-500';
@@ -12,12 +13,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [info, setInfo] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setInfo('');
@@ -27,31 +29,32 @@ export default function Login() {
       return;
     }
 
-    const savedUserData = localStorage.getItem('user');
-    if (!savedUserData) {
-      setError('No registered user found. Please register first.');
-      return;
-    }
+    setLoading(true);
+    try {
+      const res = await API.post('/api/v1/auth/login', {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
 
-    const savedUser = JSON.parse(savedUserData);
-    const enteredEmail = formData.email.trim().toLowerCase();
+      const { token, user } = res.data;
 
-    if (
-      savedUser.email &&
-      savedUser.email.trim().toLowerCase() === enteredEmail &&
-      savedUser.password === formData.password
-    ) {
-      localStorage.setItem('token', 'active');
-      localStorage.setItem('role', savedUser.role);
+      // Store real JWT token and user info
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', user.role);
       localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userId', user.id);
+      localStorage.setItem('userEmail', user.email);
 
-      if (savedUser.role === 'scout') {
+      if (user.role === 'scout') {
         navigate('/scout/dashboard');
       } else {
         navigate('/athlete/dashboard');
       }
-    } else {
-      setError('Invalid email or password.');
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Login failed. Please check your credentials.';
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,9 +135,10 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

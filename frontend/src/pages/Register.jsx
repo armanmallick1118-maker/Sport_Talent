@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
+import API from '../services/api';
 
 const field =
   'w-full rounded-xl border border-slate-700/80 bg-[#111827] py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-blue-500';
@@ -16,12 +17,13 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -30,20 +32,38 @@ export default function Register() {
       return;
     }
 
-    const normalizedData = {
-      ...formData,
-      email: formData.email.trim().toLowerCase(),
-    };
+    setLoading(true);
+    try {
+      await API.post('/api/v1/auth/register', {
+        full_name: formData.fullName,
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        role: formData.role,
+      });
 
-    localStorage.setItem('user', JSON.stringify(normalizedData));
-    localStorage.setItem('role', normalizedData.role);
-    localStorage.setItem('token', 'active');
-    localStorage.setItem('isLoggedIn', 'true');
+      // Registration successful — now auto-login
+      const loginRes = await API.post('/api/v1/auth/login', {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
 
-    if (normalizedData.role === 'scout') {
-      navigate('/scout/dashboard');
-    } else {
-      navigate('/athlete/dashboard');
+      const { token, user } = loginRes.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', user.role);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userId', user.id);
+      localStorage.setItem('userEmail', user.email);
+
+      if (user.role === 'scout') {
+        navigate('/scout/dashboard');
+      } else {
+        navigate('/athlete/dashboard');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Registration failed. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -137,9 +157,10 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Sign Up
+            {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
 
