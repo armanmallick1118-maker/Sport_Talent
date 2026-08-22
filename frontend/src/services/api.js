@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 const API = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
-    (import.meta.env.MODE === "production" ? "https://soprttelent-production.up.railway.app" : "http://localhost:8000"),
+    "https://soprttelent-production.up.railway.app",
   headers: {
     "Content-Type": "application/json",
   },
