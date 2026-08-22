@@ -81,7 +81,10 @@ export default function SprintCamera() {
     formData.append('file', blob, 'sprint.webm');
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      let aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      if (!aiBaseUrl.startsWith('http')) {
+        aiBaseUrl = `https://${aiBaseUrl}`;
+      }
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -115,7 +118,10 @@ export default function SprintCamera() {
     formData.append('file', file);
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      let aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      if (!aiBaseUrl.startsWith('http')) {
+        aiBaseUrl = `https://${aiBaseUrl}`;
+      }
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
