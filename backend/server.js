@@ -33,8 +33,8 @@ app.get('/api/ping', (req, res) => {
   });
 });
 
-// Start the server on port 8000 (or Railway PORT), Sensei!
-const PORT = process.env.PORT || 8000;
+// Start the server hardcoded on port 8000 so Railway routing doesn't mismatch!
+const PORT = 8000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is locked, loaded, and permanently awake on port ${PORT}, Sensei!`);
 });
