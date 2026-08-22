@@ -5,8 +5,8 @@
 
 # ── Core Computer Vision ────────────────────────────────────
 mediapipe==0.10.14               # Pose estimation — 33 landmarks
-opencv-python==4.10.0.84         # Frame extraction & visualization
-opencv-contrib-python==4.10.0.84 # Required by mediapipe (same version as opencv-python)
+opencv-python-headless==4.10.0.84         # Frame extraction & visualization (headless for server)
+opencv-contrib-python-headless==4.10.0.84 # Required by mediapipe (headless)
 
 # ── Person Detection ─────────────────────────────────────────
 ultralytics==8.3.40         # YOLOv8 — person bounding box detection

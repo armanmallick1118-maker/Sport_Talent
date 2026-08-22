@@ -3,7 +3,6 @@ FROM python:3.9-slim
 # Install system dependencies for OpenCV, MediaPipe, etc.
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
