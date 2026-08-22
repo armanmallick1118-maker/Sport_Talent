@@ -114,7 +114,7 @@ export default function FeedPage() {
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await API.get('/api/v1/feed?limit=50');
+      const { data } = await API.get(`/api/v1/feed?limit=50&t=${Date.now()}`);
       setPosts(data.data || []);
     } catch { setError('Could not load feed. Check your connection.'); }
     finally  { setLoading(false); }
