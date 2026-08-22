@@ -1,4 +1,4 @@
-# Root Dockerfile for Backend Deployment on Railway
+# Dockerfile for Backend Deployment on Railway
 FROM node:18-bullseye-slim
 
 # Install OpenSSL (required by Prisma)
@@ -6,15 +6,15 @@ RUN apt-get update -y && apt-get install -y openssl
 
 WORKDIR /app
 
-# Copy package config and prisma schema from backend folder
-COPY backend/package.json backend/package-lock.json* ./
-COPY backend/prisma ./prisma
+# Copy package config and prisma schema
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
 
 # Install dependencies
 RUN npm ci || npm install
 
 # Copy the rest of the backend source code
-COPY backend/ ./
+COPY . ./
 
 # Generate Prisma Client for Supabase
 RUN npx prisma generate
