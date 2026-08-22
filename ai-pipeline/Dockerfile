@@ -12,7 +12,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Pre-install CPU-only PyTorch to save massive amounts of build memory and disk space
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
 
 RUN pip install --no-cache-dir -r requirements.txt
 
