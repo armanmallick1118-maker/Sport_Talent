@@ -10,6 +10,10 @@ WORKDIR /app
 
 # Copy and install Python dependencies
 COPY requirements.txt .
+
+# Pre-install CPU-only PyTorch to prevent Railway from running out of memory downloading the 2GB GPU version
+RUN pip install --no-cache-dir torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code
