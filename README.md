@@ -1,5 +1,7 @@
 # 🏆 Sport Talent - Advanced Athlete Assessment Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 Welcome to the **Sport Talent** repository! This is a comprehensive, full-stack application designed to track, assess, and evaluate athletic talent through digital assessments, AI-driven analysis, and social networking features (the Talent Card and Feed).
 
 This repository is built with a modular, highly scalable technology stack combining a modern mobile frontend, a highly extensible API backend, and an intelligent Python-driven AI pipeline.
