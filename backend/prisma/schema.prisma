@@ -74,13 +74,14 @@ model RadarMetric {
 }
 
 model FeedPost {
-  id         String   @id @default(uuid())
-  type       String   // e.g., 'achievement', 'news', 'announcement', 'update'
-  title      String
-  content    String
-  authorId   String
-  mediaUrl   String?
-  created_at DateTime @default(now())
+  id           String   @id @default(uuid())
+  type         String   // e.g., 'achievement', 'news', 'announcement', 'update'
+  title        String
+  content      String
+  authorId     String
+  mediaUrl     String?
+  external_url String?  // Optional link to official page, registration form, full article, etc.
+  created_at   DateTime @default(now())
 }
 
 model AIRecommendation {

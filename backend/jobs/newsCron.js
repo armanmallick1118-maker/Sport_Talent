@@ -45,6 +45,40 @@ function getImageForKeyword(keyword = '') {
   return SPORT_IMAGE_MAP.default;
 }
 
+const SPORT_URL_MAP = {
+  cricket:       'https://www.bcci.tv',
+  football:      'https://www.the-aiff.com',
+  soccer:        'https://www.the-aiff.com',
+  basketball:    'https://www.basketballfederation.in',
+  athletics:     'https://www.atleticsindia.com',
+  running:       'https://www.atleticsindia.com',
+  sprinting:     'https://www.atleticsindia.com',
+  swimming:      'https://www.swimmingindia.org',
+  tennis:        'https://www.aitatenis.org',
+  badminton:     'https://www.badmintonindia.org',
+  boxing:        'https://www.boxingindia.co.in',
+  wrestling:     'https://www.wrestlingindia.org',
+  hockey:        'https://www.hockeyindia.org',
+  gym:           'https://www.sports.gov.in',
+  fitness:       'https://www.sports.gov.in',
+  training:      'https://www.sports.gov.in',
+  nutrition:     'https://www.fssai.gov.in',
+  volleyball:    'https://www.volleyballindia.com',
+  cycling:       'https://www.cyclingfederationofindia.org',
+  yoga:          'https://www.ayush.gov.in',
+  weightlifting: 'https://www.iwfindia.com',
+  gymnastics:    'https://www.gymnasticsfederationofindia.org',
+  default:       'https://www.sports.gov.in',
+};
+
+function getExternalUrl(keyword = '') {
+  const k = keyword.toLowerCase().trim();
+  for (const [key, url] of Object.entries(SPORT_URL_MAP)) {
+    if (k.includes(key)) return url;
+  }
+  return SPORT_URL_MAP.default;
+}
+
 /**
  * Uses Groq to generate 2 fresh sports news items for today.
  * Returns an array of { title, content, image_keyword } objects.
@@ -86,8 +120,8 @@ Return ONLY a valid JSON array with exactly 2 objects, no extra text:
       },
       { role: 'user', content: prompt }
     ],
-    temperature: 0.75,
-    max_tokens: 1200,
+    temperature: 0.7,
+    max_tokens: 2000,
   });
 
   let raw = completion.choices[0].message.content.trim();
@@ -131,7 +165,8 @@ async function runNewsJob() {
     const newsItems = await generateSportsNews();
 
     for (const item of newsItems) {
-      const mediaUrl = getImageForKeyword(item.image_keyword || '');
+      const mediaUrl    = getImageForKeyword(item.image_keyword || '');
+      const externalUrl = getExternalUrl(item.image_keyword || '');
       await prisma.feedPost.create({
         data: {
           type: 'news',
@@ -139,9 +174,10 @@ async function runNewsJob() {
           content: item.content,
           authorId: NEWS_BOT_AUTHOR_ID,
           mediaUrl,
+          external_url: externalUrl,
         },
       });
-      console.log(`📰 [News Bot]: Posted — "${item.title}" [img: ${item.image_keyword}]`);
+      console.log(`📰 [News Bot]: Posted — "${item.title}" [img: ${item.image_keyword}] [link: ${externalUrl}]`);
     }
   } catch (err) {
     console.error('📰 [News Bot]: Error generating news:', err.message);

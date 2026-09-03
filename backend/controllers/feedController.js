@@ -34,7 +34,7 @@ const getFeed = async (req, res) => {
 // @access  Protected
 const createFeedPost = async (req, res) => {
   try {
-    const { type, title, content, mediaUrl } = req.body;
+    const { type, title, content, mediaUrl, external_url } = req.body;
     // authorId comes from the verified JWT token — never trust the client
     const authorId = req.user?.id || req.user?.userId || 'anonymous';
 
@@ -52,6 +52,7 @@ const createFeedPost = async (req, res) => {
         content,
         authorId,
         mediaUrl: mediaUrl || null,
+        external_url: external_url || null,
       },
     });
 

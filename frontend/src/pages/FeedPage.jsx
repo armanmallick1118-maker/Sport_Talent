@@ -101,7 +101,7 @@ function PostCard({ post }) {
 }
 
 function CreatePost({ onPosted }) {
-  const [form, setForm]       = useState({ type: 'news', title: '', content: '', mediaUrl: '' });
+  const [form, setForm]       = useState({ type: 'news', title: '', content: '', mediaUrl: '', external_url: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
@@ -116,8 +116,9 @@ function CreatePost({ onPosted }) {
       await API.post('/api/v1/feed', {
         type: form.type, title: form.title.trim(),
         content: form.content.trim(), mediaUrl: form.mediaUrl.trim() || null,
+        external_url: form.external_url.trim() || null,
       });
-      setForm({ type: 'news', title: '', content: '', mediaUrl: '' });
+      setForm({ type: 'news', title: '', content: '', mediaUrl: '', external_url: '' });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2500);
       onPosted();
@@ -152,6 +153,9 @@ function CreatePost({ onPosted }) {
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors resize-none" />
         <input type="url" name="mediaUrl" value={form.mediaUrl} onChange={handleChange}
           placeholder="🖼️  Poster / video URL (optional)"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors" />
+        <input type="url" name="external_url" value={form.external_url} onChange={handleChange}
+          placeholder="🔗 Official link / Registration form URL (optional)"
           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors" />
         <button type="submit" disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">

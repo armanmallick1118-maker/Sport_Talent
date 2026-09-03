@@ -121,6 +121,27 @@ export default function PostDetail() {
             {post.content}
           </div>
 
+          {/* External link CTA */}
+          {post.external_url && (
+            <div className="mt-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-blue-500/20">
+              <div>
+                <p className="text-white font-bold text-base">
+                  {post.type === 'announcement' ? '🏆 Register / Apply Now' : '🔗 Visit Official Page'}
+                </p>
+                <p className="text-blue-100 text-xs mt-0.5 break-all">{post.external_url}</p>
+              </div>
+              <a
+                href={post.external_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-2 bg-white text-blue-700 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition shadow"
+                onClick={e => e.stopPropagation()}
+              >
+                Open Link ↗
+              </a>
+            </div>
+          )}
+
           {/* Footer meta */}
           <div className="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
             <span className="flex items-center gap-1">
