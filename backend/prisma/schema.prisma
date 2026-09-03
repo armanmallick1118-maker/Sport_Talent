@@ -29,9 +29,14 @@ model Profile {
   user_id               String  @unique
   user                  User    @relation(fields: [user_id], references: [id])
   full_name             String?
+  age                   Int?
+  height                Int?
+  weight                Int?
   sport                 String?
   position              String?
   location              String?
+  experience            Int?
+  training_frequency    String?
   avatar_url            String?
   is_verified           Boolean @default(false)
   completion_percentage Int     @default(0)
@@ -101,4 +106,3 @@ model ChatMessage {
   content    String
   created_at DateTime @default(now())
 }
-
