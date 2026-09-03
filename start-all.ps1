@@ -26,7 +26,10 @@ $frontendProcess = Start-Process powershell -PassThru -WindowStyle Hidden -Worki
 
 $aiPython = Join-Path $ai "venv\Scripts\python.exe"
 if (Test-Path $aiPython) {
+  $oldErrorActionPreference = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
   $check = & $aiPython -c "import fastapi, uvicorn" 2>&1
+  $ErrorActionPreference = $oldErrorActionPreference
   if ($LASTEXITCODE -eq 0) {
     Start-Process powershell -PassThru -WindowStyle Hidden -WorkingDirectory $ai -ArgumentList @(
       "-NoExit",

@@ -1,13 +1,35 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const Groq = require("groq-sdk");
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const verifyToken = require('../../middleware/auth');
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// Initialize Groq API
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey || apiKey.includes("YOUR_") || apiKey.includes("replace_me")) {
+    const error = new Error("GEMINI_API_KEY is missing. Add a valid Gemini key to backend/.env and restart the backend.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  return new GoogleGenerativeAI(apiKey);
+};
+
+const sendGeminiError = (res, error, fallbackMessage) => {
+  const statusCode = error.statusCode || error.status || 502;
+  const providerMessage = error.error?.message || error.message || "Unknown Gemini error";
+  const invalidKey = statusCode === 401 || /api key|authentication|unauthorized|invalid/i.test(providerMessage);
+
+  return res.status(invalidKey ? 401 : statusCode).json({
+    error: invalidKey
+      ? "Gemini API key is invalid or expired. Rotate the key, update backend/.env, and restart the backend."
+      : fallbackMessage,
+    details: providerMessage,
+  });
+};
 
 // @desc    Get AI suggestions for the logged-in user
 // @route   GET /api/v1/ai-suggestions/me
@@ -15,7 +37,6 @@ router.get('/me', verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid;
 
-    // 1. Fetch user's RadarMetrics
     const radarMetric = await prisma.radarMetric.findUnique({
       where: { user_id: userId }
     });
@@ -23,12 +44,7 @@ router.get('/me', verifyToken, async (req, res) => {
     if (!radarMetric) {
       return res.status(404).json({ error: "No physical metrics found to analyze. Please complete some assessments first." });
     }
-
-    // 2. Check if we already have a recent recommendation (cache)
-    // For now, let's always generate a new one if requested, or we can check time.
-    // Let's generate a new one and overwrite/update the existing one.
     
-    // 3. Construct Prompt
     const prompt = `
       You are an elite sports scout and athletic trainer.
       Analyze the following athlete's physical metrics (scored out of 100):
@@ -50,12 +66,10 @@ router.get('/me', verifyToken, async (req, res) => {
       }
     `;
 
-    // 4. Call Groq
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "qwen/qwen3.6-27b",
-    });
-    const responseText = completion.choices[0].message.content;
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
     
     // Extract JSON from response (handling potential markdown blocks)
     let jsonStr = responseText;
@@ -67,7 +81,6 @@ router.get('/me', verifyToken, async (req, res) => {
 
     const aiResponse = JSON.parse(jsonStr);
 
-    // 5. Save to DB
     const aiRecommendation = await prisma.aIRecommendation.upsert({
       where: { user_id: userId },
       update: {
@@ -89,13 +102,12 @@ router.get('/me', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error("AI Suggestion Error:", error);
-    res.status(500).json({ error: "Failed to generate AI suggestions", details: error.message });
+    sendGeminiError(res, error, "Failed to generate AI suggestions");
   }
 });
 
-// Helper: strip <think> blocks from any string
 function stripThink(text) {
-  return text.replace(/<think>[\s\S]*?<\/think>\s*/gi, '').trim();
+  return String(text || '').replace(/<think>[\s\S]*?<\/think>\s*/gi, '').trim();
 }
 
 // @desc    Chat with Jack (AI Coach)
@@ -109,43 +121,36 @@ router.post('/chat', verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    // Save user message to DB
     await prisma.chatMessage.create({
       data: { user_id: userId, role: 'user', content: message }
     });
 
-    // Fetch last 20 messages for context
     const history = await prisma.chatMessage.findMany({
       where: { user_id: userId },
       orderBy: { created_at: 'asc' },
       take: 20
     });
 
-    // Build messages array with proper roles; strip any stored think blocks
-    const systemPrompt = {
-      role: "system",
-      content: `You are Jack, an elite private athletic coach, registered dietitian, sports psychologist, and talent strategist.
-You are directly talking to the athlete or scout.
-Your tone is motivating, professional, and highly knowledgeable.
-NEVER include any internal reasoning or <think> tags in your output.
-Respond ONLY with your final coaching advice. Keep it concise but highly valuable.`
-    };
+    const systemInstruction = `You are Jack, an elite private athletic coach, registered dietitian, sports psychologist, and talent strategist. You are directly talking to the athlete or scout. Your tone is motivating, professional, and highly knowledgeable. NEVER include any internal reasoning or <think> tags in your output. Respond ONLY with your final coaching advice. Keep it concise but highly valuable.`;
 
-    const chatMessages = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: stripThink(msg.content)
+    const chatHistory = history.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: stripThink(msg.content) }]
     }));
 
-    const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b",
-      messages: [systemPrompt, ...chatMessages],
-      temperature: 0.7,
-      max_tokens: 600,
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-3.5-flash",
+      systemInstruction: systemInstruction 
     });
+    
+    // We remove the last message from history because that's the one the user just sent. Wait, history includes the newly saved message! So we pop the last one to use as the current prompt.
+    chatHistory.pop();
+    
+    const chat = model.startChat({ history: chatHistory });
+    const result = await chat.sendMessage(message);
+    let jackResponse = stripThink(result.response.text());
 
-    let jackResponse = stripThink(completion.choices[0].message.content);
-
-    // Save Jack's clean response to DB
     const aiMessage = await prisma.chatMessage.create({
       data: { user_id: userId, role: 'assistant', content: jackResponse }
     });
@@ -153,7 +158,7 @@ Respond ONLY with your final coaching advice. Keep it concise but highly valuabl
     res.status(200).json({ success: true, data: aiMessage });
   } catch (error) {
     console.error("Jack Chat Error:", error);
-    res.status(500).json({ error: "Jack is currently unavailable", details: error.message });
+    sendGeminiError(res, error, "Jack is currently unavailable");
   }
 });
 
@@ -166,7 +171,6 @@ router.get('/chat/history', verifyToken, async (req, res) => {
       where: { user_id: userId },
       orderBy: { created_at: 'asc' }
     });
-    // Strip any leftover <think> blocks from stored messages
     const clean = history.map(m => ({ ...m, content: stripThink(m.content) }));
     res.status(200).json({ success: true, data: clean });
   } catch (error) {

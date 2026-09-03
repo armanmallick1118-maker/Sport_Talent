@@ -1,9 +1,16 @@
 const cron = require('node-cron');
-const Groq = require('groq-sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+const getGeminiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is missing. News bot cannot run.");
+  }
+  return new GoogleGenerativeAI(apiKey);
+};
 
 const NEWS_BOT_AUTHOR_ID = 'system-news-bot';
 
@@ -80,7 +87,7 @@ function getExternalUrl(keyword = '') {
 }
 
 /**
- * Uses Groq to generate 2 fresh sports news items for today.
+ * Uses Gemini to generate 2 fresh sports news items for today.
  * Returns an array of { title, content, image_keyword } objects.
  */
 async function generateSportsNews() {
@@ -111,20 +118,15 @@ Return ONLY a valid JSON array with exactly 2 objects, no extra text:
   }
 ]`;
 
-  const completion = await groq.chat.completions.create({
-    model: 'openai/gpt-oss-20b',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a sports journalist. Always respond with valid, complete JSON only. Never truncate your response.'
-      },
-      { role: 'user', content: prompt }
-    ],
-    temperature: 0.7,
-    max_tokens: 2000,
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-3.5-flash",
+    systemInstruction: "You are a sports journalist. Always respond with valid, complete JSON only. Never truncate your response."
   });
+  
+  const result = await model.generateContent(prompt);
+  let raw = result.response.text().trim();
 
-  let raw = completion.choices[0].message.content.trim();
   if (raw.includes('```json')) raw = raw.split('```json')[1].split('```')[0].trim();
   else if (raw.includes('```')) raw = raw.split('```')[1].split('```')[0].trim();
 
