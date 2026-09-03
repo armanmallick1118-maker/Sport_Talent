@@ -1,24 +1,42 @@
-# Sport Talent - AI Agent Session Changelog
+# Sport Talent Platform - Comprehensive Feature Log
 
-This document summarizes all the features, fixes, and architectural changes added and built during this agentic AI session.
+This document serves as a complete record of all features, architectures, and systems built and integrated into the Sport Talent project.
 
-## 1. Dynamic Plugin System Template
-- **Added:** `backend/plugins/team_feature_template/`
-- **Details:** Created a new standardized template folder with `index.js` and `routes.js` to allow team members to easily add new backend API features in isolation without modifying `server.js` or risking merge conflicts.
-- **How it works:** Any new folder placed inside `backend/plugins/` with an `index.js` file exporting a `name`, `baseRoute`, and `router` will automatically be loaded by the server upon startup.
+## 1. Core Architecture & Tech Stack
+- **Frontend:** React.js built with Vite, utilizing modern React hooks and UI components (TailwindCSS/Custom CSS).
+- **Backend:** Node.js with Express.js framework.
+- **Database:** SQLite database managed via Prisma ORM for type-safe queries.
+- **Containerization:** Docker Compose setup available for containerized deployments.
 
-## 2. AI Pipeline Migration (Groq to Google Gemini AI Studio)
-- **Problem:** The previous AI pipeline was configured for Groq API keys, but the provided key was for Google AI Studio. The legacy models (`llama3-8b-8192` and `mixtral`) were also deprecated.
-- **Solution:** 
-  - Refactored `backend/plugins/ai_suggestions/index.js` (Coach Jack & AI Suggestions) to use the `@google/generative-ai` SDK.
-  - Refactored `backend/jobs/newsCron.js` (Daily News Bot) to use the `@google/generative-ai` SDK.
-  - Updated model routing to use `gemini-3.5-flash` across all AI features.
-  - Replaced `GROQ_API_KEY` with `GEMINI_API_KEY` in `backend/.env`.
-  - Created a test script `test_gemini.js` to verify successful connection to the new Gemini endpoint.
+## 2. Authentication & Security
+- **JWT-Based Auth:** Secure user registration and login endpoints.
+- **Password Hashing:** Passwords are encrypted using `bcryptjs` before being stored in the database.
+- **Protected Routes:** Middleware to verify JWT tokens and secure sensitive API endpoints.
+- **CORS & Helmet:** Configured to allow secure cross-origin resource sharing and HTTP header protections.
 
-## 3. Environment & Server Fixes
-- **Startup Script Resiliency:** Modified `start-all.ps1` to gracefully handle missing Python packages without crashing, allowing the node backend and frontend to continue starting even if the Python AI pipeline cannot run locally.
-- **Background Process Fix:** Resolved a recurring `EADDRINUSE` port 8000 error by successfully identifying and force-killing hidden, backgrounded Node.js processes that had previously been spawned by the PowerShell script.
+## 3. Athlete Profile & Assessments
+- **Physical Metrics Tracking:** Athletes can take assessments to generate scores out of 100 for core attributes:
+  - Speed
+  - Technique
+  - Agility
+  - Endurance
+  - Strength
+- **Radar Metrics:** Backend storage and frontend visualization (Radar Charts) of athlete physical performance.
 
-## 4. Authentication Verification
-- **Details:** Investigated user reports of login failures on existing accounts. Validated that the bcrypt password comparison logic and JWT signing in `backend/routes/auth.js` are bug-free and fully operational. Confirmed that any perceived login issues were likely due to browser auto-fill or local cache problems rather than backend code bugs.
+## 4. Artificial Intelligence Pipeline (Google Gemini)
+The entire AI ecosystem is powered by Google's Generative AI (`gemini-3.5-flash`).
+- **Coach Jack (AI Chatbot):** An elite private athletic coach, registered dietitian, and sports psychologist. Athletes can chat with Jack for personalized advice. Chat history is preserved in the database.
+- **AI Talent Suggestions:** Generates personalized sport recommendations and specific actionable improvement tips based on the athlete's exact radar metric scores.
+- **News Bot Cron Job (`newsCron.js`):** An automated background job that runs daily at 7:00 AM. It uses Gemini to act as a sports journalist, generating realistic daily sports news articles, pairing them with high-quality Pexels images, and posting them directly to the social feed.
+
+## 5. Social Feed & Engagement
+- **Feed Posts:** A central feed where news articles and potentially user updates are displayed.
+- **System Authors:** The backend is capable of generating content under system-level authors (e.g., the News Bot).
+
+## 6. Dynamic Plugin System
+- **Plug-and-Play Backend Architecture:** The backend features a dynamic plugin loader.
+- **Hot-loading Routes:** Any new folder placed inside `backend/plugins/` containing an `index.js` file (with `baseRoute` and `router`) is automatically detected and mounted by the Express server on startup.
+- **Team Feature Template:** Includes a `team_feature_template` to allow team members to develop new API features in complete isolation without causing merge conflicts in `server.js`.
+
+## 7. Scripts & Tooling
+- **`start-all.ps1`:** A unified PowerShell startup script that automatically launches the Vite frontend and Node.js backend simultaneously, handling environment errors gracefully.
