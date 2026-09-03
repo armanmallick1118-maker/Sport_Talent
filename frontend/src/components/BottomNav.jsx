@@ -13,7 +13,7 @@ export default function BottomNav() {
     { to: '/athlete/dashboard', label: 'Home', icon: Home },
     { to: '/sports', label: 'Assess', icon: Activity },
     { to: '/feed',             label: 'Feed',    icon: Rss },
-    { to: '/leaderboard', label: 'Discover', icon: Compass },
+    { to: '/scouts', label: 'Scouts', icon: Compass },
     { to: '/profile', label: 'Profile', icon: User },
   ];
 

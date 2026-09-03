@@ -55,7 +55,7 @@ export default function Register() {
       localStorage.setItem('userEmail', user.email);
 
       if (user.role === 'scout') {
-        navigate('/scout/dashboard');
+        navigate('/scout/onboarding');
       } else {
         navigate('/athlete/dashboard');
       }

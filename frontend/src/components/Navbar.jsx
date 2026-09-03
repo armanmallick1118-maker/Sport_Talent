@@ -20,7 +20,7 @@ export default function Navbar() {
     { to: '/athlete/dashboard', label: 'Home' },
     { to: '/sports', label: 'Assessments' },
     { to: '/feed', label: 'Feed' },
-    { to: '/leaderboard', label: 'Discover' },
+    { to: '/scouts', label: 'Find Scouts' },
     { to: '/profile', label: 'Profile' },
   ];
 
@@ -28,12 +28,16 @@ export default function Navbar() {
     { to: '/scout/dashboard', label: 'Dashboard' },
   ];
 
-  const links = role === 'scout' ? scoutLinks : athleteLinks;
+  const adminLinks = [
+    { to: '/admin/dashboard', label: 'Scout Verification' },
+  ];
+
+  const links = role === 'admin' ? adminLinks : role === 'scout' ? scoutLinks : athleteLinks;
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to={role === 'scout' ? '/scout/dashboard' : '/athlete/dashboard'}>
+        <Link to={role === 'admin' ? '/admin/dashboard' : role === 'scout' ? '/scout/dashboard' : '/athlete/dashboard'}>
           <BrandMark compact />
         </Link>
 

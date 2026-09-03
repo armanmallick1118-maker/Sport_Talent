@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -11,17 +12,20 @@ app.use(express.json());
 // Serve static files for the frontend, Sensei!
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount Routes, Sensei!
 const authRoutes = require('./routes/auth');
 const athleteRoutes = require('./routes/athlete');
 const assessmentRoutes = require('./routes/assessmentRoutes');
 const feedRoutes = require('./routes/feedRoutes');
+const scoutRoutes = require('./routes/scoutRoutes');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/athletes', athleteRoutes);
 app.use('/api/v1/assessments', assessmentRoutes);
 app.use('/api/v1/feed', feedRoutes);
+app.use('/api/v1/scouts', scoutRoutes);
 
 
 // Test route for Pritha to hit, Sensei!

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import API from '../services/api';
 
 export default function ScoutDashboard() {
+  const [verificationStatus, setVerificationStatus] = useState('PENDING');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSport, setSelectedSport] = useState('All');
   const [minScore, setMinScore] = useState(0);
@@ -16,6 +18,12 @@ export default function ScoutDashboard() {
 
   // Detailed athlete profile
   const [selectedAthleteProfile, setSelectedAthleteProfile] = useState(null);
+
+  useEffect(() => {
+    API.get('/api/v1/scouts/me')
+      .then((response) => setVerificationStatus(response.data?.verification_status || 'PENDING'))
+      .catch(() => {});
+  }, []);
 
   // ============================================================
   // MOCK TALENT DATABASE
@@ -562,6 +570,12 @@ export default function ScoutDashboard() {
         ==================================================== */}
 
         <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 mb-6 shadow-sm">
+
+          {verificationStatus !== 'VERIFIED' && (
+            <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Your profile is {verificationStatus.toLowerCase()}. It will be visible to athletes only after it is verified.
+            </div>
+          )}
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 

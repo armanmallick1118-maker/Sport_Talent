@@ -64,7 +64,7 @@ export default function AthleteDashboard() {
     { label: 'Assessment', icon: Activity, to: '/sports' },
     { label: 'My Results', icon: BarChart3, to: '/analytics' },
     { label: 'Talent Card', icon: IdCard, to: '/talent-card' },
-    { label: 'Find Scouts', icon: Users, to: '/leaderboard' },
+    { label: 'Find Scouts', icon: Users, to: '/scouts' },
   ];
 
   return (

@@ -18,8 +18,51 @@ model User {
   created_at    DateTime  @default(now())
 
   profile       Profile?
+  scout_profile ScoutProfile?
   assessments   UserAssessment[]
   radar_metric  RadarMetric?
+  evaluation_requests EvaluationRequest[]
+}
+
+model ScoutProfile {
+  id                  String   @id @default(uuid())
+  user_id             String   @unique
+  user                User     @relation(fields: [user_id], references: [id])
+  organization        String?
+  organization_type   String?
+  sports              String[]
+  specialization      String[]
+  region              String?
+  bio                 String?
+  experience_years    Int?
+  metrics_sought      String?
+  contact_email       String?
+  linkedin_url        String?
+  credential_url      String?
+  verification_status String   @default("PENDING")
+  visibility          String   @default("PUBLIC")
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  evaluation_requests EvaluationRequest[]
+
+  @@index([verification_status, visibility])
+  @@index([region])
+}
+
+model EvaluationRequest {
+  id               String   @id @default(uuid())
+  athlete_id       String
+  scout_profile_id String
+  message          String?
+  assessment_data  String?
+  status           String   @default("PENDING")
+  created_at       DateTime @default(now())
+
+  athlete       User         @relation(fields: [athlete_id], references: [id])
+  scout_profile ScoutProfile @relation(fields: [scout_profile_id], references: [id])
+
+  @@index([scout_profile_id, status])
 }
 
 model Profile {
@@ -80,4 +123,3 @@ model FeedPost {
   mediaUrl   String?
   created_at DateTime @default(now())
 }
-

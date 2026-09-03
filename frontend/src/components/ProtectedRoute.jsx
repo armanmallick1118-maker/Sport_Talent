@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children, allowedRole }) {
   }
 
   if (allowedRole && userRole !== allowedRole) {
-    const fallbackPath = userRole === 'scout' ? '/scout/dashboard' : '/athlete/dashboard';
+    const fallbackPath = userRole === 'admin' ? '/admin/dashboard' : userRole === 'scout' ? '/scout/dashboard' : '/athlete/dashboard';
     return <Navigate to={fallbackPath} replace />;
   }
 

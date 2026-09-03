@@ -25,6 +25,10 @@ import SportTalentCard from './pages/SportTalentCard';
 import AthleteDetails from './pages/AthleteDetails';
 import PrivacyConsent from './pages/PrivacyConsent';
 import FeedPage from './pages/FeedPage';
+import ScoutDirectory from './pages/ScoutDirectory';
+import ScoutProfilePage from './pages/ScoutProfilePage';
+import ScoutOnboarding from './pages/ScoutOnboarding';
+import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
   return (
@@ -133,6 +137,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/scout/onboarding" element={<ProtectedRoute allowedRole="scout"><ScoutOnboarding /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/scouts" element={<ProtectedRoute allowedRole="athlete"><ScoutDirectory /></ProtectedRoute>} />
+            <Route path="/scouts/:id" element={<ProtectedRoute allowedRole="athlete"><ScoutProfilePage /></ProtectedRoute>} />
             <Route
               path="/talent-card"
               element={

@@ -12,6 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_sensei';
 router.post('/register', async (req, res) => {
   try {
     const { email, password, full_name, role } = req.body;
+    const accountRole = role === 'scout' ? 'scout' : 'athlete';
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -28,7 +29,7 @@ router.post('/register', async (req, res) => {
       data: {
         email,
         password_hash,
-        role: role || 'athlete',
+        role: accountRole,
         profile: {
           create: {
             full_name: full_name || '',
@@ -36,6 +37,11 @@ router.post('/register', async (req, res) => {
         }
       },
     });
+
+    // Every new scout begins unverified and cannot appear in the directory.
+    if (accountRole === 'scout') {
+      await prisma.scoutProfile.create({ data: { user_id: user.id, sports: [], specialization: [] } });
+    }
 
     res.status(201).json({ message: 'User registered successfully, Sensei!', userId: user.id });
   } catch (error) {
