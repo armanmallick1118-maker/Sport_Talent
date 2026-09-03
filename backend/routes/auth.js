@@ -9,6 +9,35 @@ const { z } = require('zod');
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_sensei';
 
+const normalizeEmail = (email) => email.trim().toLowerCase();
+
+const toClientUser = (user) => ({
+  id: user.id,
+  email: user.email,
+  role: user.role,
+  fullName: user.profile?.full_name || '',
+});
+
+const findUserByEmail = async (email) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { profile: true },
+  });
+
+  if (user) return user;
+
+  const matches = await prisma.$queryRaw`
+    SELECT id FROM "User" WHERE lower("email") = ${email} LIMIT 1
+  `;
+
+  if (!matches.length) return null;
+
+  return prisma.user.findUnique({
+    where: { id: matches[0].id },
+    include: { profile: true },
+  });
+};
+
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -39,12 +68,13 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Validation failed', details: validationResult.error.issues });
     }
     
-    const { email, password, full_name, role } = validationResult.data;
+    const { password, full_name, role } = validationResult.data;
+    const email = normalizeEmail(validationResult.data.email);
 
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists, Sensei!' });
+      return res.status(409).json({ error: 'This email is already registered. Please sign in instead.' });
     }
 
     // Hash password
@@ -63,9 +93,14 @@ router.post('/register', authLimiter, async (req, res) => {
           }
         }
       },
+      include: { profile: true },
     });
 
-    res.status(201).json({ message: 'User registered successfully, Sensei!', userId: user.id });
+    res.status(201).json({
+      message: 'User registered successfully, Sensei!',
+      userId: user.id,
+      user: toClientUser(user),
+    });
   } catch (error) {
     console.error('Registration Error:', error);
     res.status(500).json({ error: 'Server error during registration' });
@@ -82,16 +117,17 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Validation failed', details: validationResult.error.issues });
     }
 
-    const { email, password } = validationResult.data;
+    const { password } = validationResult.data;
+    const email = normalizeEmail(validationResult.data.email);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await findUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials, Sensei!' });
+      return res.status(401).json({ error: 'No account found for this email. Please sign up first.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials, Sensei!' });
+      return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }
 
     // Create token
@@ -104,7 +140,7 @@ router.post('/login', authLimiter, async (req, res) => {
     res.status(200).json({ 
       success: true, 
       token, 
-      user: { id: user.id, email: user.email, role: user.role } 
+      user: toClientUser(user),
     });
   } catch (error) {
     console.error('Login Error:', error);

@@ -7,6 +7,15 @@ import API from '../services/api';
 const field =
   'w-full rounded-xl border border-slate-700/80 bg-[#111827] py-3 pl-11 pr-11 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-blue-500';
 
+const storeSession = (token, user) => {
+  localStorage.setItem('token', token);
+  localStorage.setItem('role', user.role);
+  localStorage.setItem('isLoggedIn', 'true');
+  localStorage.setItem('userId', user.id);
+  localStorage.setItem('userEmail', user.email);
+  localStorage.setItem('user', JSON.stringify(user));
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -38,12 +47,7 @@ export default function Login() {
 
       const { token, user } = res.data;
 
-      // Store real JWT token and user info
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userId', user.id);
-      localStorage.setItem('userEmail', user.email);
+      storeSession(token, user);
 
       if (user.role === 'scout') {
         navigate('/scout/dashboard');
@@ -51,7 +55,10 @@ export default function Login() {
         navigate('/athlete/dashboard');
       }
     } catch (err) {
-      const msg = err.response?.data?.error || 'Login failed. Please check your credentials.';
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.details?.[0]?.message ||
+        'Login failed. Please check your email and password.';
       setError(msg);
     } finally {
       setLoading(false);
