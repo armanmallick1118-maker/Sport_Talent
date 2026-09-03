@@ -48,14 +48,14 @@ export default function Register() {
       await API.post('/api/v1/auth/register', {
         full_name: formData.fullName.trim(),
         email,
-        password: formData.password,
+        password: formData.password.trim(),
         role: formData.role,
       });
 
       // Registration successful — now auto-login
       const loginRes = await API.post('/api/v1/auth/login', {
         email,
-        password: formData.password,
+        password: formData.password.trim(),
       });
 
       const { token, user } = loginRes.data;

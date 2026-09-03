@@ -19,6 +19,9 @@ const storeSession = (token, user) => {
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [resetPassword, setResetPassword] = useState('');
+  const [confirmResetPassword, setConfirmResetPassword] = useState('');
+  const [resetMode, setResetMode] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [info, setInfo] = useState('');
@@ -42,7 +45,7 @@ export default function Login() {
     try {
       const res = await API.post('/api/v1/auth/login', {
         email: formData.email.trim().toLowerCase(),
-        password: formData.password,
+        password: formData.password.trim(),
       });
 
       const { token, user } = res.data;
@@ -59,6 +62,48 @@ export default function Login() {
         err.response?.data?.error ||
         err.response?.data?.details?.[0]?.message ||
         'Login failed. Please check your email and password.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setError('');
+    setInfo('');
+
+    if (!formData.email) {
+      setError('Enter your registered email first.');
+      return;
+    }
+
+    if (!resetPassword || !confirmResetPassword) {
+      setError('Enter and confirm your new password.');
+      return;
+    }
+
+    if (resetPassword.trim() !== confirmResetPassword.trim()) {
+      setError('New passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await API.post('/api/v1/auth/reset-password', {
+        email: formData.email.trim().toLowerCase(),
+        password: resetPassword.trim(),
+      });
+
+      setInfo(res.data?.message || 'Password updated. Please sign in with your new password.');
+      setFormData((current) => ({ ...current, password: '' }));
+      setResetPassword('');
+      setConfirmResetPassword('');
+      setResetMode(false);
+    } catch (err) {
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.details?.[0]?.message ||
+        'Password reset failed. Please try again.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -139,12 +184,51 @@ export default function Login() {
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={() => setInfo('Password reset will be sent to your registered email.')}
+              onClick={() => {
+                setError('');
+                setInfo('');
+                setResetMode((value) => !value);
+              }}
               className="text-sm font-medium text-blue-400 hover:text-blue-300"
             >
-              Forgot Password?
+              {resetMode ? 'Back to Sign In' : 'Forgot Password?'}
             </button>
           </div>
+
+          {resetMode && (
+            <div className="space-y-4 rounded-xl border border-slate-700/80 bg-white/5 p-4">
+              <div className="relative">
+                <Lock size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  placeholder="New password"
+                  className={field}
+                  minLength={6}
+                />
+              </div>
+              <div className="relative">
+                <Lock size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmResetPassword}
+                  onChange={(e) => setConfirmResetPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className={field}
+                  minLength={6}
+                />
+              </div>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleResetPassword}
+                className="flex w-full justify-center rounded-xl border border-blue-500/40 bg-blue-500/10 py-3 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/20 disabled:pointer-events-none disabled:opacity-70"
+              >
+                Update Password
+              </button>
+            </div>
+          )}
 
           <button
             type="submit"
