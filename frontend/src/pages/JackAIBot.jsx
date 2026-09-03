@@ -69,9 +69,10 @@ export default function JackAIBot() {
       const res = await API.post('/api/v1/ai-suggestions/chat', { message: userMsg.content });
       setMessages((prev) => [...prev, res.data.data]);
     } catch (err) {
+      const apiMessage = err.response?.data?.error || "Sorry, I'm having trouble connecting right now. Let's try again in a bit.";
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: 'assistant', content: "Sorry, I'm having trouble connecting right now. Let's try again in a bit." }
+        { id: Date.now().toString(), role: 'assistant', content: apiMessage }
       ]);
     } finally {
       setIsTyping(false);

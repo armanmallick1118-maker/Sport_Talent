@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../services/api';
 
 export default function TrainingFocus() {
   const navigate = useNavigate();
@@ -16,27 +17,14 @@ export default function TrainingFocus() {
 
     const fetchSuggestions = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        const response = await API.get('/api/v1/ai-suggestions/me');
+        setAiSuggestion(response.data.data);
+      } catch (err) {
+        if (err.response?.status === 401) {
           navigate('/login');
           return;
         }
-
-        const response = await fetch('http://localhost:8000/api/v1/ai-suggestions/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          setAiSuggestion(data.data);
-        } else {
-          setError(data.error || 'Failed to fetch suggestions');
-        }
-      } catch (err) {
-        setError('Network error. Ensure backend is running.');
+        setError(err.response?.data?.error || 'Network error. Ensure backend is running.');
       } finally {
         setLoading(false);
       }

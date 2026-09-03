@@ -22,6 +22,7 @@ model User {
   radar_metric      RadarMetric?
   ai_recommendation AIRecommendation?
   chat_messages     ChatMessage[]
+  scout_profile     ScoutProfile?
 }
 
 model Profile {
@@ -29,9 +30,14 @@ model Profile {
   user_id               String  @unique
   user                  User    @relation(fields: [user_id], references: [id])
   full_name             String?
+  age                   Int?
+  height                Int?
+  weight                Int?
   sport                 String?
   position              String?
   location              String?
+  experience            Int?
+  training_frequency    String?
   avatar_url            String?
   is_verified           Boolean @default(false)
   completion_percentage Int     @default(0)
@@ -102,3 +108,12 @@ model ChatMessage {
   created_at DateTime @default(now())
 }
 
+model ScoutProfile {
+  id                String  @id @default(uuid())
+  user_id           String  @unique
+  user              User    @relation(fields: [user_id], references: [id])
+  organization      String?
+  organization_type String?
+  region            String?
+  specialization    String?
+}

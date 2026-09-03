@@ -27,6 +27,9 @@ import PrivacyConsent from './pages/PrivacyConsent';
 import FeedPage from './pages/FeedPage';
 import PostDetail from './pages/PostDetail';
 import JackAIBot from './pages/JackAIBot';
+import ScoutDirectory from './pages/ScoutDirectory';
+import ScoutDetails from './pages/ScoutDetails';
+import GeospatialRadar from './pages/GeospatialRadar';
 
 export default function App() {
   return (
@@ -144,6 +147,14 @@ export default function App() {
               }
             />
             <Route
+              path="/scout-directory"
+              element={
+                <ProtectedRoute allowedRole="athlete">
+                  <ScoutDirectory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/talent-card"
               element={
                 <ProtectedRoute allowedRole="athlete">
@@ -162,6 +173,22 @@ export default function App() {
             />
             <Route path="/feed/:id" element={<PostDetail />} />
             <Route path="/scout/athletes/:id" element={<AthleteDetails />} />
+            <Route
+              path="/geospatial"
+              element={
+                <ProtectedRoute allowedRole="athlete">
+                  <GeospatialRadar />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/scouts/:id"
+              element={
+                <ProtectedRoute allowedRole="athlete">
+                  <ScoutDetails />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/leaderboard"
               element={
