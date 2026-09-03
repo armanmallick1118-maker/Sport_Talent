@@ -25,6 +25,7 @@ import SportTalentCard from './pages/SportTalentCard';
 import AthleteDetails from './pages/AthleteDetails';
 import PrivacyConsent from './pages/PrivacyConsent';
 import FeedPage from './pages/FeedPage';
+import PostDetail from './pages/PostDetail';
 import JackAIBot from './pages/JackAIBot';
 
 export default function App() {
@@ -159,6 +160,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/feed/:id" element={<PostDetail />} />
             <Route path="/scout/athletes/:id" element={<AthleteDetails />} />
             <Route
               path="/leaderboard"
