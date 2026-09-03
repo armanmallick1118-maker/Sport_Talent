@@ -25,11 +25,17 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const requestUrl = error.config?.url || "";
+    const isAuthRequest =
+      requestUrl.includes("/api/v1/auth/login") ||
+      requestUrl.includes("/api/v1/auth/register");
+
+    if (error.response && error.response.status === 401 && !isAuthRequest) {
       // Clear token and redirect to login
       localStorage.removeItem("token");
       localStorage.removeItem("athleteProfile");
       localStorage.removeItem("userId");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     }
     return Promise.reject(error);
