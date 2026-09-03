@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import AthleteAnalytics from './AthleteAnalytics';
+import API from '../services/api';
 
 const saveProfile = async (profileData) => {
   try {
-    const token = localStorage.getItem('token');
-    await axios.post('http://localhost:8000/api/v1/athletes/profile', profileData, {
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    });
+    const res = await API.post('/api/v1/athletes/profile', profileData);
+    return res.data?.profile;
   } catch (error) {
     console.warn('Backend offline. Saving to local storage fallback:', error.message);
     localStorage.setItem('athleteProfile', JSON.stringify(profileData));
+    return null;
   }
 };
 
@@ -19,27 +18,46 @@ const TABS = [
   { id: 'analytics', label: '📊 Analytics' },
 ];
 
+const emptyProfile = {
+  name: '',
+  age: '',
+  height: '',
+  weight: '',
+  location: '',
+  primarySport: 'Football',
+  position: '',
+  experience: '',
+  trainingFrequency: '3-4 days/week',
+};
+
+const normalizeProfile = (data = {}) => ({
+  ...emptyProfile,
+  ...data,
+  name: data.name || data.full_name || '',
+  age: data.age || '',
+  height: data.height || '',
+  weight: data.weight || '',
+  location: data.location || '',
+  primarySport: data.primarySport || data.sport || 'Football',
+  position: data.position || '',
+  experience: data.experience || '',
+  trainingFrequency: data.trainingFrequency || '3-4 days/week',
+});
+
 export default function AthleteProfile() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [profile, setProfile] = useState({
-    name: '', age: '', height: '', weight: '',
-    location: '', primarySport: 'Football',
-    position: '', experience: '', trainingFrequency: '3-4 days/week',
-  });
+  const [profile, setProfile] = useState(emptyProfile);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:8000/api/v1/athletes/profile', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (res.data) setProfile(res.data);
+        const res = await API.get('/api/v1/athletes/profile');
+        if (res.data) setProfile(normalizeProfile(res.data));
       } catch {
         const stored = localStorage.getItem('athleteProfile');
         const user   = JSON.parse(localStorage.getItem('user') || '{}');
-        if (stored)         setProfile(JSON.parse(stored));
+        if (stored)         setProfile(normalizeProfile(JSON.parse(stored)));
         else if (user.fullName) setProfile(prev => ({ ...prev, name: user.fullName }));
       }
     }
@@ -51,7 +69,12 @@ export default function AthleteProfile() {
   const handleSubmit = async e => {
     e.preventDefault();
     localStorage.setItem('athleteProfile', JSON.stringify(profile));
-    await saveProfile(profile);
+    const savedProfile = await saveProfile(profile);
+    if (savedProfile) {
+      const normalized = normalizeProfile({ ...profile, ...savedProfile });
+      setProfile(normalized);
+      localStorage.setItem('athleteProfile', JSON.stringify(normalized));
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

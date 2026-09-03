@@ -174,7 +174,7 @@ class APISettings(BaseSettings):
     """FastAPI server and rate limiting configuration."""
 
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = Field(default=8000, ge=1, le=65535)
+    API_PORT: int = Field(default=8001, ge=1, le=65535)
     API_VERSION: str = "v1"
     MAX_CONCURRENT_JOBS: int = Field(default=3, ge=1, le=20)
     RATE_LIMIT_UPLOADS_PER_MIN: int = Field(default=5, ge=1)
@@ -253,7 +253,7 @@ class Settings(BaseSettings):
 
     # ── API ───────────────────────────────────────────────────
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = Field(default=8000, ge=1, le=65535)
+    API_PORT: int = Field(default=8001, ge=1, le=65535)
     API_VERSION: str = "v1"
     MAX_CONCURRENT_JOBS: int = Field(default=3, ge=1, le=20)
     RATE_LIMIT_UPLOADS_PER_MIN: int = Field(default=5, ge=1)

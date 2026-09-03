@@ -25,6 +25,7 @@ import SportTalentCard from './pages/SportTalentCard';
 import AthleteDetails from './pages/AthleteDetails';
 import PrivacyConsent from './pages/PrivacyConsent';
 import FeedPage from './pages/FeedPage';
+import JackAIBot from './pages/JackAIBot';
 
 export default function App() {
   return (
@@ -122,6 +123,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRole="athlete">
                   <TrainingFocus />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach-jack"
+              element={
+                <ProtectedRoute>
+                  <JackAIBot />
                 </ProtectedRoute>
               }
             />

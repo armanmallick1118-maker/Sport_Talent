@@ -13,7 +13,7 @@ Initialises the FastAPI app with:
   - Global exception handlers (422, 500)
 
 Run:
-    uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+    uvicorn api.main:app --reload --host 0.0.0.0 --port 8001
 """
 
 from __future__ import annotations

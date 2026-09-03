@@ -1,7 +1,7 @@
 .PHONY: run test build clean format up down
 
 run:
-	uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+	uvicorn api.main:app --host 0.0.0.0 --port 8001 --reload
 
 test:
 	venv/bin/pytest tests/ -v

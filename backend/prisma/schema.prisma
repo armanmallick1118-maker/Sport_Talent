@@ -17,9 +17,11 @@ model User {
   role          String    @default("athlete")
   created_at    DateTime  @default(now())
 
-  profile       Profile?
-  assessments   UserAssessment[]
-  radar_metric  RadarMetric?
+  profile           Profile?
+  assessments       UserAssessment[]
+  radar_metric      RadarMetric?
+  ai_recommendation AIRecommendation?
+  chat_messages     ChatMessage[]
 }
 
 model Profile {
@@ -78,6 +80,24 @@ model FeedPost {
   content    String
   authorId   String
   mediaUrl   String?
+  created_at DateTime @default(now())
+}
+
+model AIRecommendation {
+  id               String   @id @default(uuid())
+  user_id          String   @unique
+  user             User     @relation(fields: [user_id], references: [id])
+  recommended_sport String
+  improvement_tips  String
+  generated_at     DateTime @default(now())
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+  role       String   // 'user' or 'assistant'
+  content    String
   created_at DateTime @default(now())
 }
 

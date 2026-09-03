@@ -10,7 +10,7 @@ cd MEDIAPIPELINE
 make build
 make up
 ```
-The API is now running at `http://localhost:8000`.
+The API is now running at `http://localhost:8001`.
 
 ## API Endpoints Reference
 
@@ -26,7 +26,7 @@ The API is now running at `http://localhost:8000`.
 | `/api/v1/results/{id}/tensor` | GET | ML-ready flat array export (Phase 5) |
 | `/api/v1/results/{id}/stream` | GET | SSE stream of frame pose data (Phase 5) |
 
-*Full OpenAPI documentation is available at `http://localhost:8000/docs` or `http://localhost:8000/redoc` once running.*
+*Full OpenAPI documentation is available at `http://localhost:8001/docs` or `http://localhost:8001/redoc` once running.*
 
 ## Motion JSON Schema
 

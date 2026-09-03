@@ -13,7 +13,11 @@ const getAthleteProfile = async (req, res) => {
       return res.status(404).json({ message: 'Athlete profile not found, Sensei' });
     }
     
-    res.status(200).json(profile);
+    res.status(200).json({
+      ...profile,
+      name: profile.full_name || '',
+      primarySport: profile.sport || 'Football',
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -22,26 +26,35 @@ const getAthleteProfile = async (req, res) => {
 const updateAthleteProfile = async (req, res) => {
   try {
     const userId = req.user.uid;
-    const { name, age, height, weight, location, sport, position } = req.body;
+    const { name, full_name, location, sport, primarySport, position } = req.body;
+    const fullName = name || full_name || '';
+    const selectedSport = sport || primarySport || 'Football';
     
-    await prisma.profile.upsert({
+    const profile = await prisma.profile.upsert({
       where: { user_id: userId },
       update: {
-        full_name: name,
+        full_name: fullName,
         location,
-        sport,
+        sport: selectedSport,
         position,
       },
       create: {
         user_id: userId,
-        full_name: name,
+        full_name: fullName,
         location,
-        sport,
+        sport: selectedSport,
         position,
       }
     });
     
-    res.status(200).json({ message: 'Athlete profile updated successfully, Sensei' });
+    res.status(200).json({
+      message: 'Athlete profile updated successfully, Sensei',
+      profile: {
+        ...profile,
+        name: profile.full_name || '',
+        primarySport: profile.sport || 'Football',
+      },
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -18,12 +18,15 @@ export default function SprintCamera() {
 
   // Setup Camera
   useEffect(() => {
+    let activeStream = null;
+
     async function setupCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 1280, height: 720, facingMode: 'user' },
           audio: false, // AI only needs video
         });
+        activeStream = stream;
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -38,10 +41,7 @@ export default function SprintCamera() {
     setupCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      activeStream?.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
@@ -81,7 +81,7 @@ export default function SprintCamera() {
     formData.append('file', blob, 'sprint.webm');
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -90,7 +90,7 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing motion (this may take a few seconds)...');
-      await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
+      await axios.post(`${aiBaseUrl}/api/v1/process`, { session_id: sessionId });
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {
@@ -115,7 +115,7 @@ export default function SprintCamera() {
     formData.append('file', file);
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
       const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -124,7 +124,7 @@ export default function SprintCamera() {
       if (!sessionId) throw new Error("No session ID returned from upload");
 
       setProgressStatus('AI analyzing uploaded motion (this may take a few seconds)...');
-      await axios.post(`${aiBaseUrl}/api/v1/process?session_id=${sessionId}`);
+      await axios.post(`${aiBaseUrl}/api/v1/process`, { session_id: sessionId });
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {

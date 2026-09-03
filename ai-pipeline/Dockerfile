@@ -23,7 +23,7 @@ COPY . .
 RUN mkdir -p storage/uploads storage/frames storage/results storage/visualizations
 
 # Expose API port
-EXPOSE 8000
+EXPOSE 8001
 
 # Start FastAPI application using dynamic port for Railway
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8001}

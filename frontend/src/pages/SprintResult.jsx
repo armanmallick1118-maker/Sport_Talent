@@ -20,7 +20,7 @@ export default function SprintResult() {
 
       try {
         setLoading(true);
-        const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'https://sporttalent-production-5756.up.railway.app';
+        const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
         const res = await axios.get(`${aiBaseUrl}/api/v1/results/${sessionId}`);
         const data = res.data;
         

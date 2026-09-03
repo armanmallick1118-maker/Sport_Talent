@@ -1,8 +1,20 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const app = express();
+
+// Secure HTTP headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Logging
+app.use(morgan('dev'));
+
 
 // CORS — allow frontend origins
 const allowedOrigins = [
@@ -80,6 +92,15 @@ app.get('/', (req, res) => {
 // Health check
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ success: true, message: 'Sport Talent API is live.' });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('🔥 Global Error Handler:', err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message
+  });
 });
 
 // Start server
