@@ -38,9 +38,6 @@ function PostCard({ post }) {
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-blue-600 text-white rounded-full px-2.5 py-0.5 shadow">
               📰 News
             </span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-indigo-500/90 text-white rounded-full px-2 py-0.5 shadow">
-              🤖 Daily Auto-News
-            </span>
           </div>
           {/* Time on top right */}
           <span className="absolute top-3 right-3 text-[11px] text-white/80 bg-black/30 rounded-full px-2 py-0.5 backdrop-blur-sm">
