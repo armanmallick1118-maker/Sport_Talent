@@ -8,8 +8,46 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const NEWS_BOT_AUTHOR_ID = 'system-news-bot';
 
 /**
- * Uses Groq to generate 1-2 fresh sports news items for today.
- * Returns an array of { title, content } objects.
+ * Map a sport/topic keyword to a curated high-quality Pexels image URL.
+ * All images are free to use (Pexels license).
+ */
+const SPORT_IMAGE_MAP = {
+  cricket:    'https://images.pexels.com/photos/3628912/pexels-photo-3628912.jpeg?auto=compress&cs=tinysrgb&w=800',
+  football:   'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=800',
+  soccer:     'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=800',
+  basketball: 'https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=800',
+  athletics:  'https://images.pexels.com/photos/3621104/pexels-photo-3621104.jpeg?auto=compress&cs=tinysrgb&w=800',
+  running:    'https://images.pexels.com/photos/2803158/pexels-photo-2803158.jpeg?auto=compress&cs=tinysrgb&w=800',
+  sprinting:  'https://images.pexels.com/photos/2803158/pexels-photo-2803158.jpeg?auto=compress&cs=tinysrgb&w=800',
+  swimming:   'https://images.pexels.com/photos/261185/pexels-photo-261185.jpeg?auto=compress&cs=tinysrgb&w=800',
+  tennis:     'https://images.pexels.com/photos/1103829/pexels-photo-1103829.jpeg?auto=compress&cs=tinysrgb&w=800',
+  badminton:  'https://images.pexels.com/photos/3764007/pexels-photo-3764007.jpeg?auto=compress&cs=tinysrgb&w=800',
+  boxing:     'https://images.pexels.com/photos/2881632/pexels-photo-2881632.jpeg?auto=compress&cs=tinysrgb&w=800',
+  wrestling:  'https://images.pexels.com/photos/4754146/pexels-photo-4754146.jpeg?auto=compress&cs=tinysrgb&w=800',
+  hockey:     'https://images.pexels.com/photos/6203496/pexels-photo-6203496.jpeg?auto=compress&cs=tinysrgb&w=800',
+  gym:        'https://images.pexels.com/photos/1552249/pexels-photo-1552249.jpeg?auto=compress&cs=tinysrgb&w=800',
+  fitness:    'https://images.pexels.com/photos/1552249/pexels-photo-1552249.jpeg?auto=compress&cs=tinysrgb&w=800',
+  training:   'https://images.pexels.com/photos/1552249/pexels-photo-1552249.jpeg?auto=compress&cs=tinysrgb&w=800',
+  nutrition:  'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
+  diet:       'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
+  volleyball: 'https://images.pexels.com/photos/2277981/pexels-photo-2277981.jpeg?auto=compress&cs=tinysrgb&w=800',
+  cycling:    'https://images.pexels.com/photos/163407/cyclist-road-cyclist-cycling-tour-163407.jpeg?auto=compress&cs=tinysrgb&w=800',
+  yoga:       'https://images.pexels.com/photos/317157/pexels-photo-317157.jpeg?auto=compress&cs=tinysrgb&w=800',
+  weightlifting: 'https://images.pexels.com/photos/1229356/pexels-photo-1229356.jpeg?auto=compress&cs=tinysrgb&w=800',
+  default:    'https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg?auto=compress&cs=tinysrgb&w=800',
+};
+
+function getImageForKeyword(keyword = '') {
+  const k = keyword.toLowerCase().trim();
+  for (const [key, url] of Object.entries(SPORT_IMAGE_MAP)) {
+    if (k.includes(key)) return url;
+  }
+  return SPORT_IMAGE_MAP.default;
+}
+
+/**
+ * Uses Groq to generate 2 fresh sports news items for today.
+ * Returns an array of { title, content, image_keyword } objects.
  */
 async function generateSportsNews() {
   const today = new Date().toLocaleDateString('en-IN', {
@@ -25,42 +63,50 @@ Generate exactly 2 short, realistic sports news articles for India or global spo
 - Fitness & training science updates for athletes
 - Scout and talent hunt events
 
-Return ONLY a valid JSON array with exactly 2 objects like this, no extra text:
+Return ONLY a valid JSON array with exactly 2 objects, no extra text:
 [
   {
     "title": "Short punchy headline (max 15 words)",
-    "content": "2-3 sentence news body. Factual sounding, motivating tone, relevant to aspiring athletes."
+    "content": "2-3 sentence news body. Factual sounding, motivating tone, relevant to aspiring athletes.",
+    "image_keyword": "one sport or topic keyword (e.g. cricket, football, running, gym, nutrition)"
   },
   {
     "title": "Short punchy headline (max 15 words)",
-    "content": "2-3 sentence news body. Factual sounding, motivating tone, relevant to aspiring athletes."
+    "content": "2-3 sentence news body. Factual sounding, motivating tone, relevant to aspiring athletes.",
+    "image_keyword": "one sport or topic keyword"
   }
 ]`;
 
   const completion = await groq.chat.completions.create({
     model: 'openai/gpt-oss-20b',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.85,
-    max_tokens: 800,
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a sports journalist. Always respond with valid, complete JSON only. Never truncate your response.'
+      },
+      { role: 'user', content: prompt }
+    ],
+    temperature: 0.75,
+    max_tokens: 1200,
   });
 
   let raw = completion.choices[0].message.content.trim();
-
-  // Strip any markdown code fences
   if (raw.includes('```json')) raw = raw.split('```json')[1].split('```')[0].trim();
   else if (raw.includes('```')) raw = raw.split('```')[1].split('```')[0].trim();
+
+  // Extract just the JSON array portion in case of extra text
+  const arrayMatch = raw.match(/\[[\s\S]*\]/);
+  if (arrayMatch) raw = arrayMatch[0];
 
   return JSON.parse(raw);
 }
 
 /**
  * Checks how many news posts were already created today.
- * Avoids duplicate runs if the server restarts.
  */
 async function newsPostedTodayCount() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
-
   return prisma.feedPost.count({
     where: {
       type: 'news',
@@ -71,7 +117,7 @@ async function newsPostedTodayCount() {
 }
 
 /**
- * Main job: generates and saves sports news to the feed.
+ * Main job: generates and saves sports news with photos to the feed.
  */
 async function runNewsJob() {
   console.log('📰 [News Bot]: Running daily sports news generation...');
@@ -85,15 +131,17 @@ async function runNewsJob() {
     const newsItems = await generateSportsNews();
 
     for (const item of newsItems) {
+      const mediaUrl = getImageForKeyword(item.image_keyword || '');
       await prisma.feedPost.create({
         data: {
           type: 'news',
           title: item.title,
           content: item.content,
           authorId: NEWS_BOT_AUTHOR_ID,
+          mediaUrl,
         },
       });
-      console.log(`📰 [News Bot]: Posted — "${item.title}"`);
+      console.log(`📰 [News Bot]: Posted — "${item.title}" [img: ${item.image_keyword}]`);
     }
   } catch (err) {
     console.error('📰 [News Bot]: Error generating news:', err.message);
@@ -104,14 +152,10 @@ async function runNewsJob() {
  * Registers the cron schedule and runs once immediately on boot.
  */
 function startNewsCron() {
-  // Run at 7:00 AM every day (IST compatible when server is local)
   cron.schedule('0 7 * * *', () => {
     runNewsJob();
   });
-
   console.log('📰 [News Bot]: Daily news cron scheduled at 7:00 AM.');
-
-  // Also run immediately on startup so the feed is never empty
   runNewsJob();
 }
 

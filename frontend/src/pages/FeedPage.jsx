@@ -20,6 +20,45 @@ function PostCard({ post }) {
   const cfg = TYPE_CONFIG[post.type?.toLowerCase()] || TYPE_CONFIG.news;
   const isNewsBot = post.authorId === 'system-news-bot';
 
+  // Big photo card layout for auto-news with images
+  if (isNewsBot && post.mediaUrl) {
+    return (
+      <div className="bg-white border border-blue-100 rounded-2xl shadow-sm hover:shadow-lg transition-shadow overflow-hidden ring-1 ring-blue-100 col-span-1 sm:col-span-2">
+        <div className="relative w-full h-52 sm:h-64 overflow-hidden">
+          <img
+            src={post.mediaUrl}
+            alt={post.title}
+            className="w-full h-full object-cover"
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Badges on top of image */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-blue-600 text-white rounded-full px-2.5 py-0.5 shadow">
+              📰 News
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-indigo-500/90 text-white rounded-full px-2 py-0.5 shadow">
+              🤖 Daily Auto-News
+            </span>
+          </div>
+          {/* Time on top right */}
+          <span className="absolute top-3 right-3 text-[11px] text-white/80 bg-black/30 rounded-full px-2 py-0.5 backdrop-blur-sm">
+            {timeAgo(post.created_at)}
+          </span>
+          {/* Title over image */}
+          <h3 className="absolute bottom-3 left-3 right-3 font-bold text-white text-base sm:text-lg leading-snug drop-shadow-md">
+            {post.title}
+          </h3>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-slate-600 text-sm leading-relaxed">{post.content}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard card for user posts
   return (
     <div className={`bg-white border rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden ${isNewsBot ? 'border-blue-200 ring-1 ring-blue-100' : 'border-slate-200'}`}>
       {post.mediaUrl && (
