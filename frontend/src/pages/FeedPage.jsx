@@ -18,8 +18,10 @@ function timeAgo(dateStr) {
 
 function PostCard({ post }) {
   const cfg = TYPE_CONFIG[post.type?.toLowerCase()] || TYPE_CONFIG.news;
+  const isNewsBot = post.authorId === 'system-news-bot';
+
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <div className={`bg-white border rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden ${isNewsBot ? 'border-blue-200 ring-1 ring-blue-100' : 'border-slate-200'}`}>
       {post.mediaUrl && (
         <div className="w-full h-44 bg-slate-100 overflow-hidden">
           {post.mediaUrl.match(/\.(mp4|webm|mov)$/i) ? (
@@ -32,9 +34,16 @@ function PostCard({ post }) {
       )}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${cfg.color}`}>
-            {cfg.emoji} {cfg.label}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${cfg.color}`}>
+              {cfg.emoji} {cfg.label}
+            </span>
+            {isNewsBot && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold border border-indigo-200 bg-indigo-50 text-indigo-600 rounded-full px-2 py-0.5">
+                🤖 Daily Auto-News
+              </span>
+            )}
+          </div>
           <span className="text-xs text-slate-400">{timeAgo(post.created_at)}</span>
         </div>
         <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">{post.title}</h3>

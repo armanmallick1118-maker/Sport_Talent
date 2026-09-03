@@ -108,6 +108,10 @@ const PORT = process.env.PORT || 8000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Sport Talent API running on http://localhost:${PORT}`);
   console.log(`📡 Accepting requests from: ${allowedOrigins.join(', ')}\n`);
+
+  // Start daily sports news cron job
+  const { startNewsCron } = require('./jobs/newsCron');
+  startNewsCron();
 });
 
 
