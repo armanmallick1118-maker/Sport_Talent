@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Loader2 } from 'lucide-react';
 import BrandMark from '../components/BrandMark';
 import API from '../services/api';
 
@@ -59,8 +59,12 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-[#0b1220] px-4 py-10">
-      <div className="w-full max-w-[400px]">
+    <div className="flex min-h-svh items-center justify-center relative overflow-hidden bg-[#0b1220] px-4 py-10">
+      {/* Animated background elements */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-fuchsia-600/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+
+      <div className="w-full max-w-[400px] relative z-10 p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
         <div className="mb-10 flex flex-col items-center text-center">
           <div className="mb-5 flex h-16 w-24 items-end justify-center gap-1">
             <span className="h-10 w-6 rounded-t-full bg-gradient-to-b from-fuchsia-400 to-blue-500 opacity-90" />
@@ -70,23 +74,25 @@ export default function Login() {
           <BrandMark light />
         </div>
 
-        <h1 className="text-center text-3xl font-semibold tracking-tight text-white">
-          Welcome Back!
+        <h1 className="text-center text-3xl font-bold tracking-tight text-white mb-2">
+          Welcome Back
         </h1>
         <p className="mt-2 text-center text-sm text-slate-400">
-          Login to continue your journey
+          Sign in to continue your journey
         </p>
 
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">
-            {error}
-          </div>
-        )}
-        {info && (
-          <div className="mt-6 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-200">
-            {info}
-          </div>
-        )}
+        <div className={`transition-all duration-300 overflow-hidden ${error || info ? 'max-h-32 opacity-100 mt-6' : 'max-h-0 opacity-0 mt-0'}`}>
+          {error && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm text-red-400 shadow-inner">
+              {error}
+            </div>
+          )}
+          {info && (
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-300 shadow-inner">
+              {info}
+            </div>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div className="relative">
@@ -136,9 +142,16 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="group relative flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 disabled:pointer-events-none disabled:opacity-70"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin" size={18} />
+                Authenticating...
+              </span>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 
@@ -160,7 +173,7 @@ export default function Login() {
           onClick={() => setInfo('Google sign-in will be available in a later release.')}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-[#0b1220] py-3 text-sm font-medium text-white transition hover:bg-slate-900"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+          <svg viewBox="0 0 24 24" className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden>
             <path fill="#EA4335" d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.3-1.9 3l3.1 2.4c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.3-.2-1.9H12z" />
             <path fill="#34A853" d="M6.6 14.3l-.9.7-2.5 2C4.8 20 8.1 22 12 22c2.7 0 5-.9 6.7-2.4l-3.1-2.4c-.9.6-2 1-3.6 1-2.7 0-5-1.8-5.8-4.3z" />
             <path fill="#4A90E2" d="M3.2 7.1C2.4 8.6 2 10.3 2 12s.4 3.4 1.2 4.9l3.4-2.6C6.2 13.4 6 12.7 6 12s.2-1.4.6-2.3L3.2 7.1z" />

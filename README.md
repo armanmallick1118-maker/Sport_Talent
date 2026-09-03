@@ -76,4 +76,8 @@ To run the backend locally:
    ```
    *(Or use `node server.js`)*
 
-The server will start on `http://localhost:8000` (or your defined `PORT`). You will see a success message indicating that the database is connected and the Plugin System has successfully mounted all feature modules.
+The server will start on `http://localhost:8000` (or your defined `PORT`). 
+
+**Note:** The backend no longer serves a static HTML login portal. Hitting the root URL will now return a clean JSON summary of the active API endpoints. You will also see a success message indicating that the database is connected and the Plugin System has successfully mounted all feature modules.
+
+To access the user interface, please start the React frontend located in the `frontend` directory.
