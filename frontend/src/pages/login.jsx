@@ -261,6 +261,33 @@ export default function Login() {
 
         <button
           type="button"
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const res = await API.post('/api/v1/auth/login', {
+                email: 'arman.mallick1118@gmail.com',
+                password: 'password123',
+              });
+              const { token, user } = res.data;
+              storeSession(token, user);
+              if (user.role === 'scout') {
+                navigate('/scout/dashboard');
+              } else {
+                navigate('/athlete/dashboard');
+              }
+            } catch (err) {
+              setError('Dev login failed.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/50 bg-blue-500/20 py-3 text-sm font-bold text-blue-400 transition hover:bg-blue-500/30 mb-4"
+        >
+          ⚡ Instant Dev Login (Bypass)
+        </button>
+
+        <button
+          type="button"
           onClick={() => setInfo('Google sign-in will be available in a later release.')}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-[#0b1220] py-3 text-sm font-medium text-white transition hover:bg-slate-900"
         >
