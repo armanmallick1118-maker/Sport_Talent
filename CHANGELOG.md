@@ -3,9 +3,11 @@
 This document serves as a complete record of all features, architectures, and systems built and integrated into the Sport Talent project.
 
 ## 1. Core Architecture & Tech Stack
-- **Frontend:** React.js built with Vite, utilizing modern React hooks and UI components (TailwindCSS/Custom CSS).
+- **Frontend:** React.js built with Vite, utilizing modern React hooks, TailwindCSS for styling, and `react-globe.gl` (Three.js) for 3D interactive visualizations.
 - **Backend:** Node.js with Express.js framework.
 - **Database:** SQLite database managed via Prisma ORM for type-safe queries.
+- **AI/Media Pipeline:** Python 3.12 powered by FastAPI and Uvicorn. Integrates Computer Vision and Machine Learning using OpenCV (`opencv-python`), MediaPipe for pose estimation, Ultralytics (YOLO) for object detection, and PyTorch for deep learning.
+- **AI LLM:** Google Gemini (`@google/generative-ai`) for natural language processing, chatbot interactions, and news generation.
 - **Containerization:** Docker Compose setup available for containerized deployments.
 
 ## 2. Authentication & Security

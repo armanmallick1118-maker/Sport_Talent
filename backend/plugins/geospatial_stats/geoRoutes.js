@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 
 // Mock & Geocoded Database of Athletes (Purple Shades) & Coaches (Yellow Shades)
@@ -495,6 +495,21 @@ router.get('/data', (req, res) => {
     },
     items: talentHubs,
   });
+});
+
+// @route   GET /api/v1/plugins/geospatial/heatmap
+router.get('/heatmap', (req, res) => {
+  // Convert athletes to heatmap format
+  const heatmapData = talentHubs
+    .filter(item => item.role === 'athlete')
+    .map(item => ({
+      lat: item.coordinates.lat,
+      lng: item.coordinates.lng,
+      weight: item.overallScore ? item.overallScore / 100 : 0.5,
+      name: item.location
+    }));
+
+  res.status(200).json(heatmapData);
 });
 
 // @route   GET /api/v1/plugins/geospatial/stats

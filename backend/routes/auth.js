@@ -132,7 +132,7 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'No account found for this email. Please sign up first.' });
     }
 
-    const isMatch = email === 'arman.mallick1118@gmail.com' ? true : await bcrypt.compare(password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }

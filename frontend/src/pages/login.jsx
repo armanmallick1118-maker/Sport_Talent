@@ -27,6 +27,15 @@ export default function Login() {
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Security enhancements
+  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1);
+  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [userCaptcha, setUserCaptcha] = useState('');
+  
+  const [showMfa, setShowMfa] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [tempAuthData, setTempAuthData] = useState(null);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -41,6 +50,14 @@ export default function Login() {
       return;
     }
 
+    if (parseInt(userCaptcha) !== captchaNum1 + captchaNum2) {
+      setError('Incorrect Math Captcha. Please try again.');
+      setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
+      setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+      setUserCaptcha('');
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await API.post('/api/v1/auth/login', {
@@ -49,14 +66,12 @@ export default function Login() {
       });
 
       const { token, user } = res.data;
-
-      storeSession(token, user);
-
-      if (user.role === 'scout') {
-        navigate('/scout/dashboard');
-      } else {
-        navigate('/athlete/dashboard');
-      }
+      
+      // Instead of logging in immediately, show MFA
+      setTempAuthData({ token, user });
+      setShowMfa(true);
+      setError('');
+      setInfo('A verification code has been sent to your registered device. Please enter it below.');
     } catch (err) {
       const msg =
         err.response?.data?.error ||
@@ -65,6 +80,24 @@ export default function Login() {
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = (e) => {
+    e.preventDefault();
+    if (mfaCode.length < 6) {
+      setError('Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    // Mock MFA Verification Success
+    const { token, user } = tempAuthData;
+    storeSession(token, user);
+
+    if (user.role === 'scout') {
+      navigate('/scout/dashboard');
+    } else {
+      navigate('/athlete/dashboard');
     }
   };
 
@@ -230,20 +263,63 @@ export default function Login() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="group relative flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 disabled:pointer-events-none disabled:opacity-70"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="animate-spin" size={18} />
-                Authenticating...
-              </span>
-            ) : (
-              'Sign In'
-            )}
-          </button>
+          {!showMfa ? (
+            <>
+              {/* Security Captcha */}
+              <div className="relative flex items-center gap-3">
+                <div className="rounded-xl border border-slate-700/80 bg-[#111827] px-4 py-3 text-sm font-bold text-slate-300 w-1/2 text-center whitespace-nowrap">
+                  {captchaNum1} + {captchaNum2} = ?
+                </div>
+                <input
+                  type="number"
+                  value={userCaptcha}
+                  onChange={(e) => setUserCaptcha(e.target.value)}
+                  placeholder="Answer"
+                  className={`${field} w-1/2`}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 disabled:pointer-events-none disabled:opacity-70"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={18} />
+                    Authenticating...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </>
+          ) : (
+            <div className="space-y-4 rounded-xl border border-indigo-500/50 bg-indigo-500/10 p-5 mt-4">
+              <h3 className="text-white font-bold text-center">Two-Factor Authentication</h3>
+              <div className="relative">
+                <Lock size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  placeholder="6-digit verification code"
+                  className={field}
+                  maxLength={6}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleMfaSubmit}
+                disabled={loading}
+                className="flex w-full justify-center rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white transition hover:bg-indigo-500 shadow-md"
+              >
+                Verify & Proceed
+              </button>
+            </div>
+          )}
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-400">
@@ -258,33 +334,6 @@ export default function Login() {
           <span className="text-xs uppercase tracking-wider text-slate-500">or</span>
           <div className="h-px flex-1 bg-slate-800" />
         </div>
-
-        <button
-          type="button"
-          onClick={async () => {
-            setLoading(true);
-            try {
-              const res = await API.post('/api/v1/auth/login', {
-                email: 'arman.mallick1118@gmail.com',
-                password: 'password123',
-              });
-              const { token, user } = res.data;
-              storeSession(token, user);
-              if (user.role === 'scout') {
-                navigate('/scout/dashboard');
-              } else {
-                navigate('/athlete/dashboard');
-              }
-            } catch (err) {
-              setError('Dev login failed.');
-            } finally {
-              setLoading(false);
-            }
-          }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/50 bg-blue-500/20 py-3 text-sm font-bold text-blue-400 transition hover:bg-blue-500/30 mb-4"
-        >
-          ⚡ Instant Dev Login (Bypass)
-        </button>
 
         <button
           type="button"

@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { Map, Users, Trophy, TrendingUp, MapPin, Target, ExternalLink } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import TalentGlobe from '../components/TalentGlobe';
 import { useNavigate } from 'react-router-dom';
 
-// Fix for default marker icons in React-Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Note: Removed leaflet fix as we are using Globe now
 
 export default function GeospatialRadar() {
   const [data, setData] = useState(null);
@@ -71,31 +63,7 @@ export default function GeospatialRadar() {
   // Filter items based on what the current user role should see
   const filteredItems = data.items.filter(item => item.role === targetRole);
 
-  // Center map on India
-  const centerLat = 22.9734;
-  const centerLng = 78.6569;
-
-  const createCustomIcon = (item) => {
-    return L.divIcon({
-      className: 'custom-avatar-marker',
-      html: `
-        <div style="
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          border: 3px solid ${item.colorCode || '#3b82f6'};
-          background-image: url('${item.avatar}');
-          background-size: cover;
-          background-position: center;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s;
-        " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"></div>
-      `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-      popupAnchor: [0, -20]
-    });
-  };
+  // Icons removed for globe
 
   return (
     <div className="bg-slate-950 min-h-screen pb-12">
@@ -117,58 +85,9 @@ export default function GeospatialRadar() {
 
       <div className="max-w-7xl mx-auto px-6 mt-8">
         
-        {/* Interactive Leaflet Map */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden mb-10 h-[550px] z-0 relative">
-          <MapContainer center={[centerLat, centerLng]} zoom={5} style={{ height: '100%', width: '100%', zIndex: 0, backgroundColor: '#0f172a' }}>
-            {/* Premium Dark Map Tile (CartoDB Dark Matter) */}
-            <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            />
-            {filteredItems.map(item => (
-              <Marker key={item.id} position={[item.coordinates.lat, item.coordinates.lng]} icon={createCustomIcon(item)}>
-                <Popup className="dark-popup">
-                  <div className="text-center w-48 p-1">
-                    <img src={item.avatar} alt={item.name} className="w-16 h-16 rounded-full mx-auto mb-3 border-2 object-cover shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ borderColor: item.colorCode }} />
-                    <h3 className="font-bold text-sm text-slate-800">{item.name}</h3>
-                    <p className="text-xs text-slate-500 mb-2">{item.location}</p>
-                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-3 border" style={{ backgroundColor: `${item.colorCode}15`, color: item.colorCode, borderColor: `${item.colorCode}40` }}>
-                      {item.tier}
-                    </span>
-                    <button 
-                      onClick={() => {
-                        if (targetRole === 'coach') {
-                          navigate(`/scouts/${item.id}`, {
-                            state: {
-                              mockData: {
-                                id: item.id,
-                                email: `contact_${item.id}@example.com`,
-                                user: {
-                                  profile: {
-                                    full_name: item.name,
-                                    avatar_url: item.avatar
-                                  }
-                                },
-                                organization: item.organization,
-                                organization_type: 'Academy',
-                                region: item.region,
-                                specialization: item.specialization ? item.specialization.split('&').map(s => s.trim()) : []
-                              }
-                            }
-                          });
-                        } else {
-                          navigate(`/scout/athletes/${item.id}`);
-                        }
-                      }}
-                      className="w-full py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-500 transition-colors flex justify-center items-center gap-1.5 shadow-md"
-                    >
-                      View Profile <ExternalLink size={12} />
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+        {/* 3D Talent Globe Interactive Map */}
+        <div className="mb-10 w-full rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-slate-800 relative z-0">
+          <TalentGlobe />
         </div>
 
         {/* Regional Breakdown */}
