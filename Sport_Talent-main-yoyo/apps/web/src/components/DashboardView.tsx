@@ -106,17 +106,10 @@ export const DashboardView: React.FC<DashboardProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onNavigate("twin")}
-            className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-xs font-medium text-[var(--foreground)] hover:border-[var(--primary)] transition-colors flex items-center gap-1.5"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Twin v1 Active
-          </button>
-          <button
-            onClick={() => onNavigate("simulator")}
-            className="px-3 py-1.5 rounded-lg border border-blue-600/30 bg-blue-950/40 text-xs font-medium text-blue-400 hover:bg-blue-900/40 transition-colors flex items-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            What-If Simulator
+            <span className="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+            Twin Calibration
           </button>
         </div>
       </div>

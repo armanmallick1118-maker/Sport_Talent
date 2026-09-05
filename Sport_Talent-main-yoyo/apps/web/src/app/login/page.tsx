@@ -7,7 +7,7 @@ import { Eye, EyeOff, Lock, Mail, Loader2 } from 'lucide-react';
 import BrandMark from '../../components/BrandMark';
 
 const field =
-  'w-full rounded-xl border border-slate-700/80 bg-[#111827] py-3 pl-11 pr-11 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-blue-500';
+  'w-full rounded-xl border border-[#27332D] bg-[#161F1B] py-3 pl-11 pr-11 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-[#B7F34A]';
 
 const storeSession = (token: string, user: any) => {
   localStorage.setItem('token', token);
@@ -162,19 +162,19 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-svh items-center justify-center relative overflow-hidden bg-[#0b1220] px-4 py-10">
-      {/* Animated background elements */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-fuchsia-600/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+    <div className="flex min-h-svh items-center justify-center relative overflow-hidden bg-[#0B100E] px-4 py-10">
+      {/* PRANA Atmospheric background auras */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#B7F34A]/5 rounded-full filter blur-[128px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#25D9D0]/5 rounded-full filter blur-[128px] pointer-events-none"></div>
 
-      <div className="w-full max-w-[400px] relative z-10 p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
+      <div className="w-full max-w-[400px] relative z-10 p-8 rounded-2xl bg-[#111815] border border-[#27332D] shadow-2xl">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="mb-4 relative group">
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500/40 via-emerald-500/30 to-blue-500/40 rounded-full blur-lg opacity-60 group-hover:opacity-80 transition duration-500"></div>
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-[#B7F34A]/30 to-[#25D9D0]/30 rounded-full blur-md opacity-60 group-hover:opacity-90 transition duration-500"></div>
             <img
               src="/prana-logo.jpg"
               alt="PRANA Official Logo"
-              className="relative w-20 h-20 rounded-full object-cover border-2 border-cyan-400/60 shadow-2xl"
+              className="relative w-20 h-20 rounded-full object-cover border-2 border-[#B7F34A]/60 shadow-xl"
             />
           </div>
           <BrandMark light />
@@ -194,7 +194,7 @@ export default function Login() {
             </div>
           )}
           {info && (
-            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-300 shadow-inner">
+            <div className="rounded-xl border border-[#25D9D0]/30 bg-[#25D9D0]/10 px-4 py-3 text-center text-sm text-[#25D9D0] shadow-inner">
               {info}
             </div>
           )}
@@ -243,14 +243,14 @@ export default function Login() {
                 setInfo('');
                 setResetMode((value) => !value);
               }}
-              className="text-sm font-medium text-blue-400 hover:text-blue-300"
+              className="text-sm font-medium text-[#25D9D0] hover:text-[#B7F34A] transition-colors"
             >
               {resetMode ? 'Back to Sign In' : 'Forgot Password?'}
             </button>
           </div>
 
           {resetMode && (
-            <div className="space-y-4 rounded-xl border border-slate-700/80 bg-white/5 p-4">
+            <div className="space-y-4 rounded-xl border border-[#27332D] bg-[#161F1B] p-4">
               <div className="relative">
                 <Lock size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
@@ -277,7 +277,7 @@ export default function Login() {
                 type="button"
                 disabled={loading}
                 onClick={handleResetPassword}
-                className="flex w-full justify-center rounded-xl border border-blue-500/40 bg-blue-500/10 py-3 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/20 disabled:pointer-events-none disabled:opacity-70"
+                className="flex w-full justify-center rounded-xl border border-[#25D9D0]/40 bg-[#25D9D0]/10 py-3 text-sm font-semibold text-[#25D9D0] transition hover:bg-[#25D9D0]/20 disabled:pointer-events-none disabled:opacity-70"
               >
                 Update Password
               </button>
@@ -288,7 +288,7 @@ export default function Login() {
             <>
               {/* Security Captcha */}
               <div className="relative flex items-center gap-3">
-                <div className="rounded-xl border border-slate-700/80 bg-[#111827] px-4 py-3 text-sm font-bold text-slate-300 w-1/2 text-center whitespace-nowrap">
+                <div className="rounded-xl border border-[#27332D] bg-[#161F1B] px-4 py-3 text-sm font-bold text-slate-300 w-1/2 text-center whitespace-nowrap">
                   {captchaNum1} + {captchaNum2} = ?
                 </div>
                 <input
@@ -304,7 +304,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative flex w-full justify-center items-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 disabled:pointer-events-none disabled:opacity-70"
+                className="group relative flex w-full justify-center items-center rounded-xl bg-[#B7F34A] py-3 text-sm font-bold text-[#0B100E] shadow-lg shadow-[#B7F34A]/20 transition-all hover:bg-[#cbf774] disabled:pointer-events-none disabled:opacity-70"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export default function Login() {
               </button>
             </>
           ) : (
-            <div className="space-y-4 rounded-xl border border-indigo-500/50 bg-indigo-500/10 p-5 mt-4">
+            <div className="space-y-4 rounded-xl border border-[#25D9D0]/40 bg-[#25D9D0]/10 p-5 mt-4">
               <h3 className="text-white font-bold text-center">Two-Factor Authentication</h3>
               <div className="relative">
                 <Lock size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -335,7 +335,7 @@ export default function Login() {
                 type="button"
                 onClick={handleMfaSubmit}
                 disabled={loading}
-                className="flex w-full justify-center rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white transition hover:bg-indigo-500 shadow-md"
+                className="flex w-full justify-center rounded-xl bg-[#B7F34A] py-3 text-sm font-bold text-[#0B100E] transition hover:bg-[#cbf774] shadow-md shadow-[#B7F34A]/20"
               >
                 Verify & Proceed
               </button>
@@ -345,21 +345,21 @@ export default function Login() {
 
         <p className="mt-6 text-center text-sm text-slate-400">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-semibold text-blue-400 hover:text-blue-300">
+          <Link href="/register" className="font-semibold text-[#25D9D0] hover:text-[#B7F34A] transition-colors">
             Sign Up
           </Link>
         </p>
 
         <div className="my-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-800" />
-          <span className="text-xs uppercase tracking-wider text-slate-500">or</span>
-          <div className="h-px flex-1 bg-slate-800" />
+          <div className="h-px flex-1 bg-[#27332D]" />
+          <span className="text-xs uppercase tracking-wider text-slate-500 font-mono">or</span>
+          <div className="h-px flex-1 bg-[#27332D]" />
         </div>
 
         <button
           type="button"
           onClick={() => setInfo('Google sign-in will be available in a later release.')}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-[#0b1220] py-3 text-sm font-medium text-white transition hover:bg-slate-900"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#27332D] bg-[#161F1B] py-3 text-sm font-medium text-slate-200 transition hover:bg-[#1C2621] hover:text-white"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5 group-hover:scale-110 transition-transform" aria-hidden>
             <path fill="#EA4335" d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.3-1.9 3l3.1 2.4c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.3-.2-1.9H12z" />

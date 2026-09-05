@@ -11,22 +11,23 @@ import { RecoveryView } from "@/components/RecoveryView";
 import { MentalWellnessView } from "@/components/MentalWellnessView";
 import { ProgressView } from "@/components/ProgressView";
 import { GoalsView } from "@/components/GoalsView";
-import { SimulatorView } from "@/components/SimulatorView";
 import { CVExerciseView } from "@/components/CVExerciseView";
 import { HealthHubView } from "@/components/HealthHubView";
 import { SpecializedHubView } from "@/components/SpecializedHubView";
 import { ProfileView } from "@/components/ProfileView";
 import { GeospatialRadarView } from "@/components/GeospatialRadarView";
-import { Menu, X } from "lucide-react";
+import { ThemeCustomizerModal } from "@/components/ThemeEngine";
+import { Menu, X, LogOut, Palette, ChevronRight } from "lucide-react";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("athena_sidebar_collapsed");
+      const saved = localStorage.getItem("prana_sidebar_collapsed") || localStorage.getItem("athena_sidebar_collapsed");
       if (saved !== null) {
         setIsSidebarCollapsed(saved === "true");
       }
@@ -37,10 +38,22 @@ export default function Home() {
     setIsSidebarCollapsed((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem("athena_sidebar_collapsed", String(next));
+        localStorage.setItem("prana_sidebar_collapsed", String(next));
       } catch {}
       return next;
     });
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("user");
+    } catch {}
+    window.location.href = "/login";
   };
 
   // Live state synchronized from FastAPI backend (with immediate mock fallback)
@@ -138,8 +151,6 @@ export default function Home() {
         return <ProgressView />;
       case "goals":
         return <GoalsView />;
-      case "simulator":
-        return <SimulatorView />;
       case "cv":
         return <CVExerciseView />;
       case "health":
@@ -156,7 +167,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#090d16] text-slate-100 antialiased font-sans">
+    <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased font-sans transition-colors duration-200">
       {/* Desktop Sticky Sidebar (Gemini Style Collapsible) */}
       <aside
         className={`hidden lg:flex flex-col h-screen sticky top-0 z-30 transition-all duration-300 ease-in-out shrink-0 ${
@@ -178,10 +189,10 @@ export default function Home() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           ></div>
-          <div className="relative z-10 w-64 bg-slate-950 h-full shadow-2xl">
+          <div className="relative z-10 w-64 bg-[var(--surface)] h-full shadow-2xl border-r border-[var(--border)]">
             <Sidebar
               currentView={currentView}
               onSelectView={(v) => {
@@ -197,42 +208,68 @@ export default function Home() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden transition-all duration-300">
-        {/* Desktop Collapsed Floating Toggle Button (Gemini Style) */}
-        {isSidebarCollapsed && (
-          <div className="hidden lg:flex items-center gap-3 px-6 py-3 sticky top-0 z-20 bg-[#090d16]/80 backdrop-blur-md border-b border-slate-800/50">
-            <button
-              onClick={toggleSidebar}
-              className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 shadow-md flex items-center gap-2 text-xs font-semibold transition-all group"
-              title="Open sidebar"
-            >
-              <Menu className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
-              <img src="/prana-logo.jpg" alt="PRANA" className="w-5 h-5 rounded-md object-cover border border-cyan-500/30" />
-              <span className="font-mono font-bold">PRANA</span>
-              <span className="text-[10px] text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded">Expand Menu</span>
-            </button>
-          </div>
-        )}
-
-        {/* Mobile Top Navigation Bar */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 sticky top-0 z-30">
-          <div className="flex items-center gap-2">
-            <img src="/prana-logo.jpg" alt="PRANA" className="w-7 h-7 rounded-lg object-cover border border-cyan-500/40" />
-            <div className="flex flex-col">
-              <div className="text-sm font-bold text-white flex items-center gap-1.5 font-mono leading-none">
-                PRANA
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        {/* Universal Persistent Header across all pages */}
+        <header className="sticky top-0 z-20 w-full h-14 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 flex items-center justify-between transition-colors duration-200">
+          {/* Left: View Breadcrumb / Collapse Trigger */}
+          <div className="flex items-center gap-3">
+            {isSidebarCollapsed ? (
+              <button
+                onClick={toggleSidebar}
+                className="px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)] flex items-center gap-2 text-xs font-semibold transition-all group"
+                title="Expand sidebar"
+              >
+                <Menu className="w-4 h-4 text-[var(--primary)] group-hover:scale-110 transition-transform" />
+                <img src="/prana-logo.jpg" alt="PRANA" className="w-4 h-4 rounded-md object-cover border border-[var(--primary)]/30" />
+                <span className="font-mono font-bold text-[var(--foreground)]">PRANA</span>
+                <span className="text-[10px] text-[var(--muted)] font-mono bg-[var(--surface)] px-1.5 py-0.5 rounded border border-[var(--border)]">Expand</span>
+              </button>
+            ) : (
+              <div className="hidden lg:flex items-center gap-2 text-xs font-mono">
+                <span className="text-[var(--muted)] uppercase tracking-wider">PRANA</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[var(--border)]" />
+                <span className="text-[var(--foreground)] font-semibold capitalize">
+                  {currentView === "georadar" ? "Sports Facilities Radar" : currentView.replace(/([A-Z])/g, " $1")}
+                </span>
               </div>
-              <div className="text-[9px] text-slate-400 lowercase font-medium mt-0.5">
-                personal responsive adaptive network &amp; analytics
+            )}
+
+            {/* Mobile View Title & Burger */}
+            <div className="flex lg:hidden items-center gap-2">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="p-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--foreground)]"
+                title="Open menu"
+              >
+                <Menu className="w-4 h-4 text-[var(--primary)]" />
+              </button>
+              <img src="/prana-logo.jpg" alt="PRANA" className="w-5 h-5 rounded-md object-cover border border-[var(--primary)]/40" />
+              <div className="flex flex-col">
+                <span className="font-mono font-bold text-xs text-[var(--foreground)] leading-none">PRANA</span>
+                <span className="text-[9px] text-[var(--muted)] font-mono capitalize">{currentView}</span>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+
+          {/* Right: Theme Customizer & Persistent Upper Right Logout */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setIsThemeModalOpen(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--secondary)] transition-all flex items-center gap-1.5 text-xs font-medium"
+              title="Customize PRANA Theme"
+            >
+              <Palette className="w-3.5 h-3.5 text-[var(--secondary)]" />
+              <span className="hidden sm:inline">Theme</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/50 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm"
+              title="Log Out of PRANA"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Log Out</span>
+            </button>
+          </div>
         </header>
 
         {/* Viewport Content */}
@@ -240,6 +277,12 @@ export default function Home() {
           {renderActiveView()}
         </main>
       </div>
+
+      {/* Theme Customizer Modal */}
+      <ThemeCustomizerModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
     </div>
   );
 }

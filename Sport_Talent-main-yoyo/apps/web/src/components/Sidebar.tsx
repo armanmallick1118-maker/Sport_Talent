@@ -34,7 +34,6 @@ export type ViewType =
   | "mental"
   | "progress"
   | "goals"
-  | "simulator"
   | "specialized"
   | "profile";
 
@@ -82,28 +81,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "mental", label: "Mental Wellness", icon: Brain },
     { id: "progress", label: "Longitudinal Progress", icon: TrendingUp },
     { id: "goals", label: "Goals Engine", icon: Target },
-    { id: "simulator", label: "What-If Simulator", icon: Sparkles },
     { id: "specialized", label: "Specialized Hub", icon: Layers },
     { id: "profile", label: "Profile & Privacy", icon: User },
   ];
 
   return (
-    <div className="w-64 h-full border-r border-slate-800 bg-slate-950 flex flex-col select-none">
+    <div className="w-64 h-full border-r border-[var(--border)] bg-[var(--surface)] flex flex-col select-none">
       {/* Brand Header */}
-      <div className="p-4 border-b border-slate-800">
+      <div className="p-4 border-b border-[var(--border)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
               src="/prana-logo.jpg"
               alt="PRANA Logo"
-              className="w-9 h-9 rounded-xl object-cover border border-cyan-500/40 shadow-sm shadow-cyan-500/20 shrink-0"
+              className="w-9 h-9 rounded-xl object-cover border border-[var(--primary)]/40 shadow-sm shadow-[var(--primary)]/20 shrink-0"
             />
             <div className="min-w-0">
-              <div className="text-lg font-bold tracking-wider text-white font-mono leading-tight flex items-center gap-1.5">
+              <div className="text-lg font-bold tracking-wider text-[var(--foreground)] font-mono leading-tight flex items-center gap-1.5">
                 PRANA
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] inline-block animate-pulse"></span>
               </div>
-              <div className="text-[9px] font-medium text-slate-400 lowercase tracking-tight leading-tight mt-0.5 truncate">
+              <div className="text-[9px] font-medium text-[var(--secondary)] lowercase tracking-tight leading-tight mt-0.5 truncate">
                 personal responsive adaptive network &amp; analytics
               </div>
             </div>
@@ -111,8 +109,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              title="Collapse sidebar (Gemini style)"
+              className="p-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--secondary)] hover:text-[var(--foreground)] hover:bg-[var(--border)] transition-colors"
+              title="Collapse sidebar"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -121,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-2.5 px-2.5 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
@@ -129,16 +127,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectView(item.id)}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-all ${
                 isActive
-                  ? "bg-slate-900 text-white border border-slate-700 font-semibold"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent"
+                  ? "bg-[var(--surface-elevated)] text-[var(--foreground)] border-l-2 border-[var(--primary)] font-semibold shadow-sm"
+                  : "text-[var(--secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]/50 border-l-2 border-transparent"
               }`}
             >
               <div className="flex items-center gap-2.5 truncate">
                 <Icon
                   className={`w-3.5 h-3.5 shrink-0 ${
-                    isActive ? "text-blue-500" : "text-slate-500"
+                    isActive ? "text-[var(--primary)]" : "text-[var(--muted)]"
                   }`}
                 />
                 <span className="truncate">{item.label}</span>
@@ -149,12 +147,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Platform & Safety Tag */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/80">
-        <div className="flex items-center gap-2 text-[11px] text-slate-400">
-          <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+      <div className="p-3 border-t border-[var(--border)] bg-[var(--surface)]/90">
+        <div className="flex items-center gap-2 text-[11px] text-[var(--secondary)]">
+          <ShieldCheck className="w-4 h-4 text-[var(--primary)] shrink-0" />
           <div className="leading-tight">
-            <div className="font-semibold text-slate-300">PRANA Guardrails Active</div>
-            <div className="text-[10px] text-slate-500 lowercase">
+            <div className="font-semibold text-[var(--foreground)]">PRANA Guardrails Active</div>
+            <div className="text-[10px] text-[var(--muted)] lowercase">
               personal responsive adaptive network &amp; analytics
             </div>
           </div>
