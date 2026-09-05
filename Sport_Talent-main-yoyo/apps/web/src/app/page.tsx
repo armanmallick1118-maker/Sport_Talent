@@ -105,6 +105,7 @@ export default function Home() {
           <AICoachView
             recommendation={recommendation}
             readinessData={readinessData}
+            twinData={twinData}
           />
         );
       case "nutrition":

@@ -45,8 +45,10 @@ This document serves as the master record of all technologies, libraries, archit
 ### 1.4. Artificial Intelligence & Generative Pipelines
 | Technology | Version / Category | Purpose in Project |
 | :--- | :--- | :--- |
+| **Groq High-Speed Inference Engine** | LLM Engine (`groq-sdk`) | Ultra-fast inference with `openai/gpt-oss-120b` (Primary) and `qwen/qwen3.8-27b` (Fallback) delivering sub-2-second coaching intelligence. |
 | **Google Gemini Generative AI** | LLM (`@google/generative-ai`) | Powers natural language dialog, coaching prompts, and sports journalist article generation. |
 | **Coach Jack Persona Engine** | Multi-Persona Prompt Core | 4 distinct operational attitudes: Strict Mentor, Sports Scientist, Supportive Coach, Dietitian. |
+| **Biometric & Unfitness Verdict Matcher** | Cross-Examination AI | Harvests multi-hub telemetry, diagnoses unfitness, interrogates athlete, and matches subjective user verdict against objective data. |
 | **Sports Dietitian Fueling Engine** | Nutritional Math | Mifflin-St Jeor BMR formulation with macronutrient distribution targets (g/kg protein, carbs, fats). |
 | **Node-Cron** | Task Scheduler | Automated background jobs executing daily at 07:00 AM for sports journalism synthesis. |
 
@@ -62,7 +64,17 @@ This document serves as the master record of all technologies, libraries, archit
 
 ## 2. Chronological Architectural Changelog
 
-### Version 2.2.0 - Current Release (Unified ATHENA & Sport Talent Ecosystem)
+### Version 2.3.0 - Groq Ultra-Fast AI & Holistic Verdict Matching Engine
+- **Groq 120B / 27B AI Backend Integration**:
+  - Integrated Groq SDK into `backend/plugins/ai_suggestions/index.js` using `openai/gpt-oss-120b` as primary model and `qwen/qwen3.8-27b` as cascading fallback.
+  - Implemented `optionalAuth` to ensure reliable responses for both authenticated and guest athletes without 401 token errors.
+- **Cross-App Holistic Telemetry Aggregation**:
+  - `AICoachView.tsx` harvests telemetry from all webapp subsystems: Digital Twin (8-axis scores), Readiness (score, sleep architecture, fatigue), Lab Biomarkers (hs-CRP, glucose, vitD), and Athena Motion CV Kinematics (reps, peak depth, form deviations).
+- **Biometric Audit & Unfitness Verdict Matching**:
+  - Added **"Run Unfitness Diagnostic Audit"** to pinpoint athlete bottlenecks.
+  - Built **"Verdict Studio"**: Athlete submits their personal explanation/verdict (e.g. sleep issues, knee soreness, stress); Coach Jack matches objective telemetry with the subjective verdict to synthesize prescriptive protocols.
+
+### Version 2.2.0 (Unified ATHENA & Sport Talent Ecosystem)
 - **Coach Jack 4-Persona Upgrade**:
   - Implemented live Persona Switcher: *Strict Mentor*, *Sports Scientist*, *Lenient/Supportive Coach*, and *Elite Sports Dietitian*.
   - Added integrated **Macro & Calorie Fueling Calculator** with real-time target adjustments based on bodyweight and training goal.
