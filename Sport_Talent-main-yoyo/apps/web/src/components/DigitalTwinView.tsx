@@ -30,8 +30,14 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({
   twinData,
   onRefreshTwin,
 }) => {
-  const [selectedVersion, setSelectedVersion] = useState("v1");
+  const [selectedVersion, setSelectedVersion] = useState(twinData?.version === "Twin v2" ? "v2" : "v1");
   const [deltaWindow, setDeltaWindow] = useState<30 | 90 | 180>(30);
+
+  React.useEffect(() => {
+    if (twinData?.version === "Twin v2") {
+      setSelectedVersion("v2");
+    }
+  }, [twinData?.version]);
 
   const scores = twinData?.scores || {
     strength: 72,

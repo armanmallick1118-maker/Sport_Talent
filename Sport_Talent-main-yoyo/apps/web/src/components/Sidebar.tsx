@@ -17,6 +17,7 @@ import {
   User,
   ShieldCheck,
   FileText,
+  Compass,
 } from "lucide-react";
 
 export type ViewType =
@@ -26,6 +27,7 @@ export type ViewType =
   | "coach"
   | "health"
   | "cv"
+  | "georadar"
   | "nutrition"
   | "recovery"
   | "mental"
@@ -48,6 +50,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   twinVersion = "Twin v1",
   readinessScore = 74,
 }) => {
+  const [profileCompletion, setProfileCompletion] = React.useState<number>(100);
+
+  React.useEffect(() => {
+    const updateCompletion = () => {
+      try {
+        const saved = localStorage.getItem("athena_profile_completion");
+        if (saved !== null) {
+          setProfileCompletion(parseInt(saved));
+        }
+      } catch {}
+    };
+    updateCompletion();
+    window.addEventListener("athena_profile_updated", updateCompletion);
+    return () => window.removeEventListener("athena_profile_updated", updateCompletion);
+  }, []);
+
   const navItems: { id: ViewType; label: string; icon: React.ElementType; badge?: string }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "twin", label: "My Twin", icon: Cpu, badge: twinVersion },
@@ -55,6 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "coach", label: "Coach Jack", icon: Bot, badge: "Mentor" },
     { id: "health", label: "Health & Lab Reports", icon: FileText, badge: "Biomarkers" },
     { id: "cv", label: "Exercise CV Coach", icon: Camera, badge: "8002 AI" },
+    { id: "georadar", label: "Talent Geo Radar", icon: Compass, badge: "Radar Scan" },
     { id: "nutrition", label: "Nutrition & Calorie", icon: Utensils },
     { id: "recovery", label: "Recovery & Sleep", icon: Moon, badge: `${readinessScore}` },
     { id: "mental", label: "Mental Wellness", icon: Brain },
@@ -62,8 +81,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: "goals", label: "Goals Engine", icon: Target },
     { id: "simulator", label: "What-If Simulator", icon: Sparkles },
     { id: "specialized", label: "Specialized Hub", icon: Layers, badge: "Women/Age+" },
-    { id: "profile", label: "Profile & Privacy", icon: User },
+    {
+      id: "profile",
+      label: "Profile & Privacy",
+      icon: User,
+      badge: profileCompletion === 100 ? "Verified" : `${profileCompletion}%`,
+    },
   ];
+
 
 
   return (

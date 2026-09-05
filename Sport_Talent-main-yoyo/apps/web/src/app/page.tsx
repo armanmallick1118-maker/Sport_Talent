@@ -16,6 +16,7 @@ import { CVExerciseView } from "@/components/CVExerciseView";
 import { HealthHubView } from "@/components/HealthHubView";
 import { SpecializedHubView } from "@/components/SpecializedHubView";
 import { ProfileView } from "@/components/ProfileView";
+import { GeospatialRadarView } from "@/components/GeospatialRadarView";
 import { Menu, X } from "lucide-react";
 
 export default function Home() {
@@ -126,6 +127,8 @@ export default function Home() {
         return <SpecializedHubView />;
       case "profile":
         return <ProfileView />;
+      case "georadar":
+        return <GeospatialRadarView />;
       default:
         return <DashboardView onNavigate={(v) => setCurrentView(v)} />;
     }

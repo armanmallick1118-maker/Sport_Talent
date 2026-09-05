@@ -239,6 +239,13 @@ export const DashboardView: React.FC<DashboardProps> = ({
               <FileText className="w-3.5 h-3.5 text-purple-400" />
               Lab Biomarkers Hub
             </button>
+            <button
+              onClick={() => onNavigate("georadar")}
+              className="px-4 py-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/40 text-emerald-300 font-medium text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              Talent Geo Radar (360°)
+            </button>
           </div>
         </div>
       </div>
