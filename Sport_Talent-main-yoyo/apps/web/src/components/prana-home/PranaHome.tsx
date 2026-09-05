@@ -34,7 +34,7 @@ export const PranaHome: React.FC = () => {
       localStorage.removeItem("userEmail");
       localStorage.removeItem("user");
     } catch {}
-    window.location.href = "/login";
+    window.location.replace("/login");
   };
 
   const scrollToOrbit = () => {

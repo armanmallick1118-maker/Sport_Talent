@@ -27,6 +27,28 @@ export default function DashboardPage() {
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    // Strict Authentication Guard
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      if (!token && isLoggedIn !== "true") {
+        window.location.replace("/login");
+        return false;
+      }
+      return true;
+    };
+
+    if (!checkAuth()) return;
+
+    // Handle bfcache / back-forward navigation after logout
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
     try {
       const saved = localStorage.getItem("prana_sidebar_collapsed") || localStorage.getItem("athena_sidebar_collapsed");
       if (saved !== null) {
@@ -44,6 +66,10 @@ export default function DashboardPage() {
         localStorage.removeItem("prana_initial_view");
       }
     } catch {}
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, []);
 
   const toggleSidebar = () => {
@@ -65,7 +91,8 @@ export default function DashboardPage() {
       localStorage.removeItem("userEmail");
       localStorage.removeItem("user");
     } catch {}
-    window.location.href = "/login";
+    // Use replace so current page is removed from history stack, preventing Back button return
+    window.location.replace("/login");
   };
 
   // Live state synchronized from FastAPI backend (with immediate mock fallback)

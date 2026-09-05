@@ -23,6 +23,10 @@ import {
   ChevronRight,
   ShieldCheck,
   Dumbbell,
+  Phone,
+  PhoneCall,
+  LifeBuoy,
+  ShieldAlert,
 } from "lucide-react";
 
 interface MoodExercise {
@@ -691,6 +695,162 @@ export const MentalWellnessView: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 24/7 URGENT CRISIS & SERIOUS MENTAL HEALTH SUPPORT (TOLL-FREE NUMBERS)    */}
+      {/* ========================================================================= */}
+      <div className="mt-8 p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-[#190F12] via-[#120D10] to-[#0B100E] space-y-5 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-500/20 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                <span className="text-xs font-mono font-bold text-rose-400 uppercase tracking-wider">
+                  24/7 Crisis &amp; Serious Mental Health Support
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
+                Immediate Toll-Free Confidential Helplines
+              </h3>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs font-mono">
+            <LifeBuoy className="w-3.5 h-3.5 text-rose-400" />
+            <span>100% Free &bull; Anonymous &bull; Available 24/7</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-300 leading-relaxed max-w-4xl">
+          If you or someone you know is undergoing acute emotional distress, intense anxiety, severe depression, panic attacks, or thoughts of self-harm, please connect with certified counselors immediately. You are not alone and compassionate help is one tap away.
+        </p>
+
+        {/* Helpline Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+          {/* 1. Tele-MANAS */}
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-[#0B100E]/80 space-y-3 flex flex-col justify-between hover:border-rose-400/60 transition-all">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase font-bold text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">
+                  National Tele-MANAS
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold">Govt. 24/7</span>
+              </div>
+              <div className="text-xl font-mono font-extrabold text-white tracking-tight pt-1">
+                14416
+              </div>
+              <div className="text-[11px] text-slate-400 font-mono">
+                Alt: 1800-891-4416
+              </div>
+              <p className="text-[11px] text-slate-300 leading-normal">
+                Ministry of Health (India) 24/7 comprehensive psychological counseling across 20+ regional languages.
+              </p>
+            </div>
+            <a
+              href="tel:14416"
+              className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-rose-600/20 cursor-pointer"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Call 14416 (Toll-Free)</span>
+            </a>
+          </div>
+
+          {/* 2. KIRAN Helpline */}
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-[#0B100E]/80 space-y-3 flex flex-col justify-between hover:border-rose-400/60 transition-all">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase font-bold text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">
+                  KIRAN Helpline
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold">24/7 Active</span>
+              </div>
+              <div className="text-lg font-mono font-extrabold text-white tracking-tight pt-1">
+                1800-599-0019
+              </div>
+              <div className="text-[11px] text-slate-400 font-mono">
+                Govt. Rehabilitation
+              </div>
+              <p className="text-[11px] text-slate-300 leading-normal">
+                Department of Empowerment of Persons with Disabilities. Specialized crisis intervention, stress, and anxiety support.
+              </p>
+            </div>
+            <a
+              href="tel:18005990019"
+              className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-rose-600/20 cursor-pointer"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Call 1800-599-0019</span>
+            </a>
+          </div>
+
+          {/* 3. Vandrevala Foundation */}
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-[#0B100E]/80 space-y-3 flex flex-col justify-between hover:border-rose-400/60 transition-all">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase font-bold text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">
+                  Vandrevala Trust
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold">Free 24/7</span>
+              </div>
+              <div className="text-lg font-mono font-extrabold text-white tracking-tight pt-1">
+                9999 666 555
+              </div>
+              <div className="text-[11px] text-slate-400 font-mono">
+                +91 9999 666 555
+              </div>
+              <p className="text-[11px] text-slate-300 leading-normal">
+                Experienced clinical psychologists providing confidential de-escalation, panic stabilization, and counseling.
+              </p>
+            </div>
+            <a
+              href="tel:+919999666555"
+              className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-rose-600/20 cursor-pointer"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Call 9999 666 555</span>
+            </a>
+          </div>
+
+          {/* 4. Emergency & International */}
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-[#0B100E]/80 space-y-3 flex flex-col justify-between hover:border-rose-400/60 transition-all">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase font-bold text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30">
+                  Emergency &amp; Global
+                </span>
+                <span className="text-[10px] font-mono text-amber-400 font-bold">Emergency</span>
+              </div>
+              <div className="text-lg font-mono font-extrabold text-white tracking-tight pt-1">
+                112 / 988
+              </div>
+              <div className="text-[11px] text-slate-400 font-mono">
+                National Emergency
+              </div>
+              <p className="text-[11px] text-slate-300 leading-normal">
+                Dial <strong>112</strong> in India &amp; Europe for emergency services. Dial <strong>988</strong> in the US &amp; Canada for the Suicide &amp; Crisis Lifeline.
+              </p>
+            </div>
+            <a
+              href="tel:112"
+              className="w-full py-2 px-3 rounded-lg bg-red-700 hover:bg-red-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-red-700/20 cursor-pointer"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Call Emergency (112)</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Disclaimer Notice */}
+        <div className="p-3 bg-black/40 rounded-xl border border-rose-500/20 text-[11px] text-slate-400 flex items-start gap-2">
+          <Info className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+          <span>
+            <strong>Disclaimer:</strong> PRANA Mental Wellness is designed for athletic mindfulness and performance self-regulation. If you or someone you know is in acute danger or experiencing psychiatric crises, please contact emergency responders or call the toll-free helplines above without delay.
+          </span>
         </div>
       </div>
     </div>

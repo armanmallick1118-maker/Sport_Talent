@@ -41,6 +41,14 @@ export default function Login() {
   useEffect(() => {
     setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
     setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+
+    // Prevent browser Back button ("undo") from returning to previous authenticated views after logout
+    window.history.pushState(null, '', window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
