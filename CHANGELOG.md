@@ -64,6 +64,20 @@ This document serves as the master record of all technologies, libraries, archit
 
 ## 2. Chronological Architectural Changelog
 
+### Version 2.4.0 - Authentic CV Video & Live Camera Kinematics (Zero Dummy Data)
+- **Direct Video File Upload Processing (`/analyze_video_upload`)**:
+  - Upgraded Python Athena Motion server (`plugin-cv_model/server.py`) to process uploaded videos frame-by-frame using OpenCV and MediaPipe Pose.
+  - Computes real joint angles, rep hysteresis transitions, real consistency standard deviations, and extracts keyframe snapshots at peak inflection depth.
+- **Live Camera Telemetry & Workout Sessions**:
+  - Added `/live_session/start`, `/live_session/telemetry`, and `/live_session/stop` endpoints on port 8002.
+  - Real-time HUD showing live joint angle gauge, live reps, and active movement phase (`START`, `ECCENTRIC`, `INFLECTION`, `CONCENTRIC`).
+  - Compiles full verified kinematic reports upon stopping the live workout session.
+- **Biomechanical Estimations Suite**:
+  - Automatically estimates Concentric Power Output (Watts), Metabolic Energy Burn (kcal), Joint Strain Index (Patellofemoral Flexion), and Cadence Tempo Ratio without arbitrary numbers.
+- **Zero Dummy Data & No-Person Detection Guard**:
+  - Removed all `Math.random()` numbers and static deviation strings.
+  - Automatically detects when no human body is visible and alerts the athlete.
+
 ### Version 2.3.0 - Groq Ultra-Fast AI & Holistic Verdict Matching Engine
 - **Groq 120B / 27B AI Backend Integration**:
   - Integrated Groq SDK into `backend/plugins/ai_suggestions/index.js` using `openai/gpt-oss-120b` as primary model and `qwen/qwen3.8-27b` as cascading fallback.
