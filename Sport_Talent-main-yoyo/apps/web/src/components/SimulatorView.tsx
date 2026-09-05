@@ -107,7 +107,7 @@ export const SimulatorView: React.FC = () => {
           Future / What-If Simulator
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          A core ATHENA differentiator. Test hypothetical lifestyle modifications over 4, 12, or 24-week horizons. Never fabricates false scientific certainty.
+          A core PRANA differentiator. Test hypothetical lifestyle modifications over 4, 12, or 24-week horizons. Never fabricates false scientific certainty.
         </p>
       </div>
 
@@ -284,7 +284,7 @@ export const SimulatorView: React.FC = () => {
           <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-[11px] text-slate-400 leading-relaxed flex items-start gap-2">
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
             <div>
-              ATHENA simulations model biological response ranges from exercise physiology literature. Human adaptations are non-deterministic and vary with genetics, stress, and lifestyle fidelity.
+              PRANA simulations model biological response ranges from exercise physiology literature. Human adaptations are non-deterministic and vary with genetics, stress, and lifestyle fidelity.
             </div>
           </div>
         </div>

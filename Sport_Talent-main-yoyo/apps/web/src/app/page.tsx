@@ -22,6 +22,26 @@ import { Menu, X } from "lucide-react";
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("athena_sidebar_collapsed");
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === "true");
+      }
+    } catch {}
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("athena_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Live state synchronized from FastAPI backend (with immediate mock fallback)
   const [twinData, setTwinData] = useState<any>({
@@ -137,24 +157,31 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-[#090d16] text-slate-100 antialiased font-sans">
-      {/* Desktop Sticky Sidebar */}
-      <div className="hidden lg:block">
+      {/* Desktop Sticky Sidebar (Gemini Style Collapsible) */}
+      <aside
+        className={`hidden lg:flex flex-col h-screen sticky top-0 z-30 transition-all duration-300 ease-in-out shrink-0 ${
+          isSidebarCollapsed
+            ? "w-0 opacity-0 pointer-events-none -translate-x-full overflow-hidden"
+            : "w-64 opacity-100 translate-x-0"
+        }`}
+      >
         <Sidebar
           currentView={currentView}
           onSelectView={(v) => setCurrentView(v)}
           twinVersion={twinData?.version}
           readinessScore={readinessData?.readiness_score}
+          onToggleCollapse={toggleSidebar}
         />
-      </div>
+      </aside>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           ></div>
-          <div className="relative z-10 w-64 bg-slate-950">
+          <div className="relative z-10 w-64 bg-slate-950 h-full shadow-2xl">
             <Sidebar
               currentView={currentView}
               onSelectView={(v) => {
@@ -169,12 +196,36 @@ export default function Home() {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden transition-all duration-300">
+        {/* Desktop Collapsed Floating Toggle Button (Gemini Style) */}
+        {isSidebarCollapsed && (
+          <div className="hidden lg:flex items-center gap-3 px-6 py-3 sticky top-0 z-20 bg-[#090d16]/80 backdrop-blur-md border-b border-slate-800/50">
+            <button
+              onClick={toggleSidebar}
+              className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 shadow-md flex items-center gap-2 text-xs font-semibold transition-all group"
+              title="Open sidebar"
+            >
+              <Menu className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <img src="/prana-logo.jpg" alt="PRANA" className="w-5 h-5 rounded-md object-cover border border-cyan-500/30" />
+              <span className="font-mono font-bold">PRANA</span>
+              <span className="text-[10px] text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded">Expand Menu</span>
+            </button>
+          </div>
+        )}
+
         {/* Mobile Top Navigation Bar */}
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 sticky top-0 z-30">
-          <div className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-            ATHENA
+          <div className="flex items-center gap-2">
+            <img src="/prana-logo.jpg" alt="PRANA" className="w-7 h-7 rounded-lg object-cover border border-cyan-500/40" />
+            <div className="flex flex-col">
+              <div className="text-sm font-bold text-white flex items-center gap-1.5 font-mono leading-none">
+                PRANA
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+              </div>
+              <div className="text-[9px] text-slate-400 lowercase font-medium mt-0.5">
+                personal responsive adaptive network &amp; analytics
+              </div>
+            </div>
           </div>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -185,7 +236,7 @@ export default function Home() {
         </header>
 
         {/* Viewport Content */}
-        <main className="flex-1 p-4 sm:p-7 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
           {renderActiveView()}
         </main>
       </div>

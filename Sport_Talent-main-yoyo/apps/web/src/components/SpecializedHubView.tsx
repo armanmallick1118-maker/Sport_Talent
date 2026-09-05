@@ -43,7 +43,7 @@ export const SpecializedHubView: React.FC = () => {
           Specialized Wellness Hub
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Dedicated modules for Women&apos;s Wellness, PCOS/PCOD Support, ATHENA AGE+, Sedentary Inactivity, Healthy Peer Challenges, and the Wellness Knowledge Graph.
+          Dedicated modules for Women&apos;s Wellness, PCOS/PCOD Support, PRANA AGE+, Sedentary Inactivity, Healthy Peer Challenges, and the Wellness Knowledge Graph.
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export const SpecializedHubView: React.FC = () => {
         {[
           { id: "womens", label: "Women's Wellness" },
           { id: "pcos", label: "PCOS / PCOD Support" },
-          { id: "age_plus", label: "ATHENA AGE+" },
+          { id: "age_plus", label: "PRANA AGE+" },
           { id: "sedentary", label: "Sedentary Intelligence" },
           { id: "competition", label: "Healthy Challenges" },
           { id: "graph", label: "Wellness Knowledge Graph" },
@@ -135,7 +135,7 @@ export const SpecializedHubView: React.FC = () => {
           </div>
 
           <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs text-slate-400">
-            ATHENA Women&apos;s Wellness provides educational, supportive lifestyle suggestions. Does not make medical diagnosis or prescribe clinical treatments.
+            PRANA Women&apos;s Wellness provides educational, supportive lifestyle suggestions. Does not make medical diagnosis or prescribe clinical treatments.
           </div>
         </div>
       )}
@@ -151,7 +151,7 @@ export const SpecializedHubView: React.FC = () => {
               PCOS / PCOD Lifestyle Support Module
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Empowering metabolic and daily movement habits. ATHENA never diagnoses PCOS or hormonal disease.
+              Empowering metabolic and daily movement habits. PRANA never diagnoses PCOS or hormonal disease.
             </p>
           </div>
 
@@ -183,13 +183,13 @@ export const SpecializedHubView: React.FC = () => {
         </div>
       )}
 
-      {/* 3. ATHENA AGE+ MODULE */}
+      {/* 3. PRANA AGE+ MODULE */}
       {activeTab === "age_plus" && (
         <div className="athena-card p-6 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
             <div>
               <h2 className="text-base font-bold text-white">
-                ATHENA AGE+ (Older Adult Fitness &amp; Vitality)
+                PRANA AGE+ (Older Adult Fitness &amp; Vitality)
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Focus on safe functional strength, mobility, balance, fall prevention, and low-impact chair exercises.
@@ -391,7 +391,7 @@ export const SpecializedHubView: React.FC = () => {
                 Scientific Non-Causal Guardrail
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                ATHENA strictly utilizes relational language (&ldquo;associated with&rdquo;, &ldquo;correlates with&rdquo;, &ldquo;appears related to&rdquo;) rather than claiming deterministic causation. Physiological data reflects interrelated systems.
+                PRANA strictly utilizes relational language (&ldquo;associated with&rdquo;, &ldquo;correlates with&rdquo;, &ldquo;appears related to&rdquo;) rather than claiming deterministic causation. Physiological data reflects interrelated systems.
               </p>
               <div className="p-3 bg-slate-900 rounded border border-slate-800 text-xs text-slate-400">
                 Nodes: User &bull; Fitness &bull; Training &bull; Recovery &bull; Sleep &bull; Nutrition &bull; Performance &bull; Goals

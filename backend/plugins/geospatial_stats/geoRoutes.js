@@ -497,17 +497,43 @@ router.get('/data', (req, res) => {
   });
 });
 
+// Comprehensive Sports & Fitness Infrastructure Database
+const sportsFacilities = [
+  { id: 'fac-1', name: 'Apex High-Performance Olympic Gym', category: 'gym', categoryLabel: 'Gym & Strength Vault', sport: 'Olympic Weightlifting', region: 'North', distanceKm: 22.4, rating: 4.9, coordinates: { lat: 28.6139, lng: 77.2090 }, operatingHours: '24/7', pricing: '$45/mo', verified: true },
+  { id: 'fac-2', name: 'Indraprastha Olympic Athletics Stadium', category: 'stadium', categoryLabel: 'National Stadium', sport: 'Track & Field', region: 'Central', distanceKm: 28.5, rating: 4.9, coordinates: { lat: 28.5910, lng: 77.2340 }, operatingHours: '05:30 AM - 10:00 PM', pricing: 'Free Public / $4 Spec', verified: true },
+  { id: 'fac-3', name: 'BlueWave Olympic Aquatic Center', category: 'pool', categoryLabel: 'Olympic Swimming Complex', sport: 'Swimming & Diving', region: 'South', distanceKm: 34.2, rating: 4.8, coordinates: { lat: 12.9716, lng: 77.5946 }, operatingHours: '06:00 AM - 09:30 PM', pricing: '$7 / Session', verified: true },
+  { id: 'fac-4', name: 'Apex Vanguard Football Turf & Ground', category: 'ground', categoryLabel: 'Athletic Ground & Turf', sport: 'Football & Drills', region: 'West', distanceKm: 41.8, rating: 4.7, coordinates: { lat: 19.0760, lng: 72.8777 }, operatingHours: '06:00 AM - 11:30 PM', pricing: '$25/hr Turf', verified: true },
+  { id: 'fac-5', name: 'SmashZone International Badminton Academy', category: 'badminton', categoryLabel: 'Badminton Complex', sport: 'Badminton', region: 'East', distanceKm: 26.0, rating: 4.9, coordinates: { lat: 22.5726, lng: 88.3639 }, operatingHours: '05:00 AM - 11:00 PM', pricing: '$9/hr Court', verified: true },
+  { id: 'fac-6', name: 'Spartan Combat Club & Boxing Dojo', category: 'combat', categoryLabel: 'Combat & Boxing Dojo', sport: 'Boxing & MMA', region: 'North', distanceKm: 31.5, rating: 4.8, coordinates: { lat: 28.7041, lng: 77.1025 }, operatingHours: '06:00 AM - 10:30 PM', pricing: '$35/mo', verified: true },
+  { id: 'fac-7', name: 'BioKinetics Sports Science & Cryo Lab', category: 'science', categoryLabel: 'Sports Science & Recovery', sport: 'VO2 Max & Cryo', region: 'Central', distanceKm: 23.8, rating: 5.0, coordinates: { lat: 28.6300, lng: 77.2200 }, operatingHours: '08:00 AM - 08:00 PM', pricing: '$25/session', verified: true },
+  { id: 'fac-8', name: 'Thunderbolt CrossFit & Strength Box', category: 'gym', categoryLabel: 'Functional Box', sport: 'CrossFit & Hyrox', region: 'South', distanceKm: 47.0, rating: 4.8, coordinates: { lat: 13.0827, lng: 80.2707 }, operatingHours: '05:30 AM - 09:30 PM', pricing: '$40/mo', verified: true },
+  { id: 'fac-9', name: 'CyberDome Multi-Sport Indoor Arena', category: 'stadium', categoryLabel: 'Indoor Arena', sport: 'Basketball & Volley', region: 'West', distanceKm: 54.5, rating: 4.9, coordinates: { lat: 18.5204, lng: 73.8567 }, operatingHours: '06:00 AM - 11:00 PM', pricing: '$30/hr', verified: true },
+  { id: 'fac-10', name: 'Aquastride Hydrotherapy & Diving Well', category: 'pool', categoryLabel: 'Hydrotherapy Well', sport: 'Aquatic Rehab', region: 'East', distanceKm: 62.1, rating: 4.7, coordinates: { lat: 22.5800, lng: 88.4000 }, operatingHours: '07:00 AM - 08:30 PM', pricing: '$12/hr', verified: true },
+  { id: 'fac-11', name: 'GreenValley Multi-Sport Athletic Track & Ground', category: 'ground', categoryLabel: 'Athletic Ground', sport: 'Athletics & Cricket', region: 'North', distanceKm: 78.4, rating: 4.6, coordinates: { lat: 30.7333, lng: 76.7794 }, operatingHours: '05:00 AM - 08:30 PM', pricing: 'Free Public', verified: true },
+  { id: 'fac-12', name: 'Metro Smashers Badminton & Racquet Club', category: 'badminton', categoryLabel: 'Badminton Club', sport: 'Badminton', region: 'Central', distanceKm: 38.0, rating: 4.8, coordinates: { lat: 28.5355, lng: 77.3910 }, operatingHours: '06:00 AM - 11:00 PM', pricing: '$8/hr', verified: true },
+  { id: 'fac-13', name: 'IronForge Strongman Compound', category: 'gym', categoryLabel: 'Strongman Yard', sport: 'Strongman & Grip', region: 'West', distanceKm: 85.0, rating: 4.9, coordinates: { lat: 19.2183, lng: 72.9781 }, operatingHours: '06:00 AM - 10:00 PM', pricing: '$10 Day Pass', verified: true },
+  { id: 'fac-14', name: 'Elite Biomechanics Institute', category: 'science', categoryLabel: 'Motion Capture Lab', sport: '3D MoCap & Force', region: 'South', distanceKm: 92.5, rating: 5.0, coordinates: { lat: 12.9352, lng: 77.6245 }, operatingHours: '09:00 AM - 06:00 PM', pricing: '$85 Audit', verified: true }
+];
+
+// @route   GET /api/v1/plugins/geospatial/facilities
+router.get('/facilities', (req, res) => {
+  res.status(200).json({
+    success: true,
+    count: sportsFacilities.length,
+    facilities: sportsFacilities
+  });
+});
+
 // @route   GET /api/v1/plugins/geospatial/heatmap
 router.get('/heatmap', (req, res) => {
-  // Convert athletes to heatmap format
-  const heatmapData = talentHubs
-    .filter(item => item.role === 'athlete')
-    .map(item => ({
-      lat: item.coordinates.lat,
-      lng: item.coordinates.lng,
-      weight: item.overallScore ? item.overallScore / 100 : 0.5,
-      name: item.location
-    }));
+  const heatmapData = sportsFacilities.map(item => ({
+    lat: item.coordinates.lat,
+    lng: item.coordinates.lng,
+    weight: item.rating ? item.rating / 5 : 0.8,
+    name: item.name,
+    category: item.category,
+    distanceKm: item.distanceKm
+  }));
 
   res.status(200).json(heatmapData);
 });

@@ -34,8 +34,50 @@ export const DashboardView: React.FC<DashboardProps> = ({
 }) => {
   const readiness = readinessData?.readiness_score ?? 74;
   const fitness = 78;
-  const activity = 82;
-  const consistency = 71;
+  const [activity, setActivity] = React.useState<number>(82);
+  const [consistency, setConsistency] = React.useState<number>(76);
+  const [workoutCount, setWorkoutCount] = React.useState<number>(2);
+
+  // Live Dynamic State from AI Health Report & Lab Report Manager
+  const [aiHealthScore, setAiHealthScore] = React.useState<number>(88);
+  const [latestPanel, setLatestPanel] = React.useState<string>("Comprehensive Athlete Panel");
+  const [latestPanelDate, setLatestPanelDate] = React.useState<string>("2026-08-28");
+  const [labStatus, setLabStatus] = React.useState<string>("Optimal");
+
+  React.useEffect(() => {
+    const updateAll = () => {
+      try {
+        const savedScore = localStorage.getItem("athena_health_score");
+        if (savedScore) setAiHealthScore(parseInt(savedScore));
+        const savedReports = localStorage.getItem("athena_lab_reports");
+        if (savedReports) {
+          const parsed = JSON.parse(savedReports);
+          if (parsed && parsed.length > 0) {
+            setLatestPanel(parsed[0].panel);
+            setLatestPanelDate(parsed[0].date);
+            setLabStatus(parsed[0].status === "Normal" ? "Optimal" : "Attention");
+          }
+        }
+        const savedWorkouts = localStorage.getItem("athena_logged_workouts");
+        if (savedWorkouts) {
+          const wList = JSON.parse(savedWorkouts);
+          if (Array.isArray(wList)) {
+            setWorkoutCount(wList.length);
+            setConsistency(Math.min(98, 70 + wList.length * 4));
+            const totalMins = wList.reduce((acc: number, cur: any) => acc + (cur.duration || 0), 0);
+            setActivity(Math.min(99, 70 + Math.round(totalMins / 5)));
+          }
+        }
+      } catch {}
+    };
+    updateAll();
+    window.addEventListener("athena_health_updated", updateAll);
+    window.addEventListener("athena_workout_updated", updateAll);
+    return () => {
+      window.removeEventListener("athena_health_updated", updateAll);
+      window.removeEventListener("athena_workout_updated", updateAll);
+    };
+  }, []);
 
   const rec = recommendation || {
     title: "20 Min Moderate Kinetic Workout",
@@ -178,8 +220,8 @@ export const DashboardView: React.FC<DashboardProps> = ({
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                <span className="text-xs font-bold tracking-wider text-blue-400 uppercase">
-                  ATHENA SUGGESTS
+                <span className="text-xs font-bold tracking-wider text-cyan-400 uppercase">
+                  PRANA SUGGESTS
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -198,11 +240,11 @@ export const DashboardView: React.FC<DashboardProps> = ({
               </p>
             </div>
 
-            {/* WHY Section - Required Core Athena Element */}
+            {/* WHY Section - Required Core PRANA Element */}
             <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
               <div className="text-[11px] font-bold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-blue-400" />
-                WHY IS ATHENA RECOMMENDING THIS?
+                <Info className="w-3.5 h-3.5 text-cyan-400" />
+                WHY IS PRANA RECOMMENDING THIS?
               </div>
               <p className="text-xs text-slate-300 leading-relaxed font-normal">
                 {rec.reasoning_why}
@@ -279,13 +321,24 @@ export const DashboardView: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <div className="athena-card p-4 space-y-2 border-purple-500/20 bg-purple-950/10">
+        <div
+          onClick={() => onNavigate("health")}
+          className="athena-card p-4 space-y-2 border-purple-500/30 bg-purple-950/20 hover:border-purple-500/60 transition-all cursor-pointer group"
+        >
           <div className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider flex items-center justify-between">
-            <span>LAB BIOMARKERS</span>
-            <span className="text-[10px] text-emerald-400 font-mono">OPTIMAL</span>
+            <span className="flex items-center gap-1.5 font-mono">
+              <Sparkles className="w-3 h-3 text-purple-400" />
+              AI HEALTH &amp; LABS
+            </span>
+            <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+              SCORE: {aiHealthScore}
+            </span>
           </div>
           <div className="text-xs text-slate-300 leading-relaxed">
-            hs-CRP: 0.8 mg/L (Low), Fasting Glucose: 88 mg/dL, Vit D: 44 ng/mL. Cleared for high-volume CV tracking.
+            Latest Panel: <span className="text-white font-semibold">{latestPanel}</span> ({latestPanelDate}). Status: <span className="text-emerald-400 font-medium">{labStatus}</span>.
+          </div>
+          <div className="text-[10px] text-purple-400 font-medium group-hover:underline flex items-center gap-1 pt-0.5">
+            View AI Diagnostic &amp; Lab Manager &rarr;
           </div>
         </div>
       </div>

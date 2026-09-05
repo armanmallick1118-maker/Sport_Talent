@@ -168,20 +168,23 @@ export default function Login() {
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-fuchsia-600/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: '2s' }}></div>
 
       <div className="w-full max-w-[400px] relative z-10 p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-        <div className="mb-10 flex flex-col items-center text-center">
-          <div className="mb-5 flex h-16 w-24 items-end justify-center gap-1">
-            <span className="h-10 w-6 rounded-t-full bg-gradient-to-b from-fuchsia-400 to-blue-500 opacity-90" />
-            <span className="h-14 w-6 rounded-t-full bg-gradient-to-b from-violet-400 to-blue-600" />
-            <span className="h-11 w-6 rounded-t-full bg-gradient-to-b from-pink-400 to-indigo-500 opacity-90" />
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-4 relative group">
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500/40 via-emerald-500/30 to-blue-500/40 rounded-full blur-lg opacity-60 group-hover:opacity-80 transition duration-500"></div>
+            <img
+              src="/prana-logo.jpg"
+              alt="PRANA Official Logo"
+              className="relative w-20 h-20 rounded-full object-cover border-2 border-cyan-400/60 shadow-2xl"
+            />
           </div>
           <BrandMark light />
         </div>
 
-        <h1 className="text-center text-3xl font-bold tracking-tight text-white mb-2">
-          Welcome Back
+        <h1 className="text-center text-3xl font-bold tracking-tight text-white mb-1">
+          Welcome to PRANA
         </h1>
-        <p className="mt-2 text-center text-sm text-slate-400">
-          Sign in to continue your journey
+        <p className="mt-1 text-center text-xs text-slate-400 lowercase font-medium">
+          personal responsive adaptive network &amp; analytics
         </p>
 
         <div className={`transition-all duration-300 overflow-hidden ${error || info ? 'max-h-32 opacity-100 mt-6' : 'max-h-0 opacity-0 mt-0'}`}>

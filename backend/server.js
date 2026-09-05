@@ -42,11 +42,13 @@ const authRoutes = require('./routes/auth');
 const athleteRoutes = require('./routes/athlete');
 const assessmentRoutes = require('./routes/assessmentRoutes');
 const feedRoutes = require('./routes/feedRoutes');
+const nutritionRoutes = require('./routes/nutritionRoutes');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/athletes', athleteRoutes);
 app.use('/api/v1/assessments', assessmentRoutes);
 app.use('/api/v1/feed', feedRoutes);
+app.use('/api/v1/nutrition', nutritionRoutes);
 
 // --- DYNAMIC PLUGIN LOADER ---
 const pluginsPath = path.join(__dirname, 'plugins');

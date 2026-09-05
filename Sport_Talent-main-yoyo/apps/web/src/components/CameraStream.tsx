@@ -9,7 +9,7 @@ export default function CameraStream() {
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           LIVE KINEMATIC STREAM
         </h2>
-        <span className="text-xs text-indigo-300 font-mono">ATHENA-MOTION TRACKER</span>
+        <span className="text-xs text-cyan-300 font-mono">PRANA-MOTION TRACKER</span>
       </div>
       <div className="relative aspect-video bg-black flex items-center justify-center">
         <img 

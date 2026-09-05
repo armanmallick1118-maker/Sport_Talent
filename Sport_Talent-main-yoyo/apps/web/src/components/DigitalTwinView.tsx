@@ -259,7 +259,7 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({
           {/* Delta Narrative Synthesis */}
           <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 text-xs text-slate-300 space-y-1.5">
             <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-              ATHENA Longitudinal Synthesis
+              PRANA Longitudinal Synthesis
             </div>
             <p className="leading-relaxed text-slate-300">
               Over the last {deltaWindow} days, the user&apos;s physiological adaptations demonstrate consistent progressive overload. Strength and endurance metrics show positive velocity without elevated systemic fatigue. Habit consistency represents the primary driver of cardiovascular progress.
