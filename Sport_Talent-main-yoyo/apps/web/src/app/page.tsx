@@ -31,6 +31,17 @@ export default function Home() {
       if (saved !== null) {
         setIsSidebarCollapsed(saved === "true");
       }
+
+      // Check if user was directed to a specific view (e.g. Profile upon signup)
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedView = urlParams.get("view") as ViewType | null;
+      const initialView = localStorage.getItem("prana_initial_view") as ViewType | null;
+      if (requestedView) {
+        setCurrentView(requestedView);
+      } else if (initialView) {
+        setCurrentView(initialView);
+        localStorage.removeItem("prana_initial_view");
+      }
     } catch {}
   }, []);
 

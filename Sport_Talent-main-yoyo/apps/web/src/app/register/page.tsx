@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, Mail, User, Loader2, Dumbbell, Award, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Loader2, ArrowRight } from 'lucide-react';
 import BrandMark from '../../components/BrandMark';
 
 const field =
@@ -50,10 +50,6 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleRoleChange = (role: 'athlete' | 'scout') => {
-    setFormData((prev) => ({ ...prev, role }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -82,16 +78,17 @@ export default function Register() {
     setLoading(true);
     try {
       const email = formData.email.trim().toLowerCase();
+      const cleanName = formData.fullName.trim();
 
       // 1. Call registration endpoint
       const regRes = await fetch('http://127.0.0.1:8000/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          full_name: formData.fullName.trim(),
+          full_name: cleanName,
           email,
           password: formData.password.trim(),
-          role: formData.role,
+          role: 'athlete',
         }),
       });
 
@@ -105,7 +102,29 @@ export default function Register() {
         );
       }
 
-      setInfo('Account created successfully! Signing in...');
+      setInfo('Account created successfully! Preparing your profile...');
+
+      // Save user's registered name and initialize profile with ONLY this name
+      localStorage.setItem('userName', cleanName);
+      localStorage.setItem('prana_initial_view', 'profile');
+
+      const initialProfile = {
+        fullName: cleanName,
+        age: "",
+        gender: "MALE",
+        customGender: "",
+        fitnessLevel: "BEGINNER",
+        activityLevel: "MODERATE",
+        heightCm: "",
+        weightKg: "",
+        dietaryPref: "INDIAN_STANDARD",
+        equipment: "",
+        selectedSports: [],
+        limitations: "",
+        healthNotes: "",
+      };
+      localStorage.setItem('prana_user_profile', JSON.stringify(initialProfile));
+      localStorage.setItem('athena_user_profile', JSON.stringify(initialProfile));
 
       // 2. Auto-login the newly created user
       try {
@@ -120,18 +139,18 @@ export default function Register() {
 
         if (loginRes.ok) {
           const loginData = await loginRes.json();
-          storeSession(loginData.token, loginData.user);
-          router.push('/');
+          storeSession(loginData.token, { ...loginData.user, fullName: cleanName });
+          // Directly navigate to the profile section for the new user
+          router.push('/?view=profile');
           return;
         }
       } catch (loginErr) {
-        console.warn('Auto-login attempt failed, routing to login page:', loginErr);
+        console.warn('Auto-login attempt failed:', loginErr);
       }
 
-      // Fallback: Redirect to login with prefilled confirmation
-      setTimeout(() => {
-        router.push('/login');
-      }, 1200);
+      // Fallback session & direct profile navigation
+      storeSession('local_session_' + Date.now(), { email, fullName: cleanName, role: 'athlete' });
+      router.push('/?view=profile');
     } catch (err: any) {
       const msg = err.message || 'Registration failed. Please check your connection and try again.';
       setError(msg);
@@ -194,40 +213,6 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          {/* Account Role Selector */}
-          <div>
-            <label className="block text-xs font-mono uppercase text-slate-400 mb-2">
-              Select Account Role
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleRoleChange('athlete')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                  formData.role === 'athlete'
-                    ? 'border-[#B7F34A] bg-[#B7F34A]/10 text-[#B7F34A]'
-                    : 'border-[#27332D] bg-[#161F1B] text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Dumbbell size={14} />
-                <span>Athlete / Member</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRoleChange('scout')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                  formData.role === 'scout'
-                    ? 'border-[#25D9D0] bg-[#25D9D0]/10 text-[#25D9D0]'
-                    : 'border-[#27332D] bg-[#161F1B] text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Award size={14} />
-                <span>Coach / Scout</span>
-              </button>
-            </div>
-          </div>
-
           {/* Full Name */}
           <div className="relative">
             <User size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />

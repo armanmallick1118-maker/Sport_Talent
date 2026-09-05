@@ -79,6 +79,44 @@ export const DashboardView: React.FC<DashboardProps> = ({
     };
   }, []);
 
+  const [userName, setUserName] = React.useState<string>("Alex");
+
+  React.useEffect(() => {
+    const resolveName = () => {
+      try {
+        const direct = localStorage.getItem("userName");
+        if (direct && direct.trim()) {
+          setUserName(direct.trim().split(" ")[0]);
+          return;
+        }
+        const rawUser = localStorage.getItem("user");
+        if (rawUser) {
+          const u = JSON.parse(rawUser);
+          if (u.fullName && u.fullName.trim()) {
+            setUserName(u.fullName.trim().split(" ")[0]);
+            return;
+          }
+        }
+        const profile = localStorage.getItem("prana_user_profile") || localStorage.getItem("athena_user_profile");
+        if (profile) {
+          const p = JSON.parse(profile);
+          if (p.fullName && p.fullName.trim()) {
+            setUserName(p.fullName.trim().split(" ")[0]);
+            return;
+          }
+        }
+      } catch {}
+    };
+
+    resolveName();
+    window.addEventListener("prana_profile_updated", resolveName);
+    window.addEventListener("athena_profile_updated", resolveName);
+    return () => {
+      window.removeEventListener("prana_profile_updated", resolveName);
+      window.removeEventListener("athena_profile_updated", resolveName);
+    };
+  }, []);
+
   const rec = recommendation || {
     title: "20 Min Moderate Kinetic Workout",
     summary: "Controlled bodyweight circuit with dynamic mobility warmup.",
@@ -97,7 +135,7 @@ export const DashboardView: React.FC<DashboardProps> = ({
             Personal Intelligence System
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mt-0.5">
-            Good evening, Alex
+            Good evening, {userName}
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             System status calibrated from longitudinal baseline. Twin v1 active.

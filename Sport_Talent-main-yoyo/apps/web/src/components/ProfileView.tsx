@@ -17,26 +17,22 @@ import {
 } from "lucide-react";
 
 export const ProfileView: React.FC = () => {
-  // Required fields
-  const [fullName, setFullName] = useState("Alex Chen");
-  const [age, setAge] = useState<number | "">(28);
+  // Fields (initialized clean for new users, only name auto-populated)
+  const [fullName, setFullName] = useState("");
+  const [age, setAge] = useState<number | "">("");
   const [gender, setGender] = useState<"MALE" | "FEMALE" | "CUSTOM">("MALE");
   const [customGender, setCustomGender] = useState("");
-  const [fitnessLevel, setFitnessLevel] = useState("INTERMEDIATE");
+  const [fitnessLevel, setFitnessLevel] = useState("BEGINNER");
   const [activityLevel, setActivityLevel] = useState("MODERATE");
 
   // Optional fields
-  const [heightCm, setHeightCm] = useState<number | "">(178);
-  const [weightKg, setWeightKg] = useState<number | "">(74.5);
+  const [heightCm, setHeightCm] = useState<number | "">("");
+  const [weightKg, setWeightKg] = useState<number | "">("");
   const [dietaryPref, setDietaryPref] = useState("INDIAN_STANDARD");
-  const [equipment, setEquipment] = useState("Bodyweight, Dumbbells, Pull-up bar");
+  const [equipment, setEquipment] = useState("");
 
   // Dynamic & Interactive Sports / Fitness Interests
-  const [selectedSports, setSelectedSports] = useState<string[]>([
-    "Sprinting",
-    "Strength / Powerlifting",
-    "Functional Training",
-  ]);
+  const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [customSportInput, setCustomSportInput] = useState("");
 
   const presetSports = [
@@ -55,18 +51,32 @@ export const ProfileView: React.FC = () => {
   ];
 
   // Sensitive fields (Guarded)
-  const [limitations, setLimitations] = useState("Mild left ankle stiffness from past sprain");
-  const [healthNotes, setHealthNotes] = useState("Focusing on aerobic base and core stability.");
+  const [limitations, setLimitations] = useState("");
+  const [healthNotes, setHealthNotes] = useState("");
 
   const [isSaved, setIsSaved] = useState(false);
 
-  // Load profile from localStorage on mount if available
+  // Load profile from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("athena_user_profile");
+      // 1. Check for registered user's name from session
+      let registeredName = "";
+      const directName = localStorage.getItem("userName");
+      if (directName) {
+        registeredName = directName;
+      } else {
+        const rawUser = localStorage.getItem("user");
+        if (rawUser) {
+          const u = JSON.parse(rawUser);
+          if (u.fullName) registeredName = u.fullName;
+        }
+      }
+
+      // 2. Check saved profile
+      const saved = localStorage.getItem("prana_user_profile") || localStorage.getItem("athena_user_profile");
       if (saved) {
         const data = JSON.parse(saved);
-        if (data.fullName !== undefined) setFullName(data.fullName);
+        setFullName(data.fullName || registeredName || "");
         if (data.age !== undefined) setAge(data.age);
         if (data.gender !== undefined) setGender(data.gender);
         if (data.customGender !== undefined) setCustomGender(data.customGender);
@@ -76,9 +86,12 @@ export const ProfileView: React.FC = () => {
         if (data.weightKg !== undefined) setWeightKg(data.weightKg);
         if (data.dietaryPref !== undefined) setDietaryPref(data.dietaryPref);
         if (data.equipment !== undefined) setEquipment(data.equipment);
-        if (data.selectedSports !== undefined) setSelectedSports(data.selectedSports);
+        if (data.selectedSports !== undefined && Array.isArray(data.selectedSports)) setSelectedSports(data.selectedSports);
         if (data.limitations !== undefined) setLimitations(data.limitations);
         if (data.healthNotes !== undefined) setHealthNotes(data.healthNotes);
+      } else if (registeredName) {
+        // New user: ONLY the name is pre-filled, everything else stays clean
+        setFullName(registeredName);
       }
     } catch {
       // fallback
@@ -172,10 +185,24 @@ export const ProfileView: React.FC = () => {
       isComplete: isProfileComplete,
     };
 
+    localStorage.setItem("prana_user_profile", JSON.stringify(profileData));
     localStorage.setItem("athena_user_profile", JSON.stringify(profileData));
+    localStorage.setItem("prana_profile_completion", percentage.toString());
     localStorage.setItem("athena_profile_completion", percentage.toString());
+    if (fullName) {
+      localStorage.setItem("userName", fullName);
+      try {
+        const rawUser = localStorage.getItem("user");
+        if (rawUser) {
+          const u = JSON.parse(rawUser);
+          u.fullName = fullName;
+          localStorage.setItem("user", JSON.stringify(u));
+        }
+      } catch {}
+    }
 
     // Dispatch custom event for dashboard/sidebar reactivity
+    window.dispatchEvent(new Event("prana_profile_updated"));
     window.dispatchEvent(new Event("athena_profile_updated"));
 
     setIsSaved(true);
