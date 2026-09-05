@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   LayoutDashboard,
   Cpu,
@@ -90,14 +91,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div className="p-4 border-b border-[var(--border)]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 group cursor-pointer"
+            aria-label="Go to PRANA home"
+            title="Go to PRANA home"
+          >
             <img
               src="/prana-logo.jpg"
               alt="PRANA Logo"
-              className="w-9 h-9 rounded-xl object-cover border border-[var(--primary)]/40 shadow-sm shadow-[var(--primary)]/20 shrink-0"
+              className="w-9 h-9 rounded-xl object-cover border border-[var(--primary)]/40 shadow-sm shadow-[var(--primary)]/20 shrink-0 group-hover:scale-105 transition-transform"
             />
             <div className="min-w-0">
-              <div className="text-lg font-bold tracking-wider text-[var(--foreground)] font-mono leading-tight flex items-center gap-1.5">
+              <div className="text-lg font-bold tracking-wider text-[var(--foreground)] font-mono leading-tight flex items-center gap-1.5 group-hover:text-[var(--primary)] transition-colors">
                 PRANA
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] inline-block animate-pulse"></span>
               </div>
@@ -105,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 personal responsive adaptive network &amp; analytics
               </div>
             </div>
-          </div>
+          </Link>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}

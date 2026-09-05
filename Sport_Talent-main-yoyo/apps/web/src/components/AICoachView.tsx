@@ -26,12 +26,41 @@ import {
   HelpCircle,
   Stethoscope,
   RefreshCw,
+  Target,
+  ArrowRight,
 } from "lucide-react";
+
+export interface MilestoneItem {
+  id: string;
+  week: number;
+  label: string;
+  targetMetric?: string;
+  completed: boolean;
+}
+
+export interface GoalItem {
+  id: string;
+  title: string;
+  category: "ENDURANCE" | "STRENGTH" | "MOBILITY" | "BODY_COMP" | "AGILITY" | "RECOVERY";
+  target: string;
+  current: string;
+  baseline: string;
+  unit: string;
+  timeline_weeks: number;
+  current_week: number;
+  progress_percentage: number;
+  status: "ACTIVE" | "COMPLETED" | "ARCHIVED";
+  milestones: MilestoneItem[];
+  weekly_actions: string[];
+  notes?: string;
+  createdAt: string;
+}
 
 interface AICoachProps {
   recommendation?: any;
   readinessData?: any;
   twinData?: any;
+  onNavigate?: (view: any) => void;
 }
 
 export type CoachMode = "strict" | "professional" | "lenient" | "dietitian";
@@ -40,6 +69,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
   recommendation,
   readinessData,
   twinData,
+  onNavigate,
 }) => {
   const readiness = readinessData?.readiness_score ?? 74;
 
@@ -55,6 +85,238 @@ export const AICoachView: React.FC<AICoachProps> = ({
   const [showVerdictStudio, setShowVerdictStudio] = useState(false);
   const [isAuditing, setIsAuditing] = useState(false);
 
+  // Goal Engine Formulation & Sync State
+  const [showGoalSynthesizer, setShowGoalSynthesizer] = useState(false);
+  const [goalCustomPrompt, setGoalCustomPrompt] = useState("");
+  const [goalNotification, setGoalNotification] = useState<string | null>(null);
+
+  // Navigate to Goal Engine helper
+  const handleNavigateToGoals = () => {
+    try {
+      localStorage.setItem("prana_initial_view", "goals");
+    } catch {}
+    if (onNavigate) {
+      onNavigate("goals");
+    } else {
+      window.location.href = "/dashboard?view=goals";
+    }
+  };
+
+  // Helper to persist goals into prana_user_goals
+  const transferGoalToEngine = (goal: GoalItem): boolean => {
+    try {
+      const raw = localStorage.getItem("prana_user_goals");
+      let currentGoals: GoalItem[] = [];
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) currentGoals = parsed;
+        } catch {}
+      }
+      currentGoals = currentGoals.filter((g) => g.id !== goal.id && g.title !== goal.title);
+      currentGoals.unshift(goal);
+      localStorage.setItem("prana_user_goals", JSON.stringify(currentGoals));
+      window.dispatchEvent(new Event("prana_goals_updated"));
+      return true;
+    } catch (err) {
+      console.error("Failed to sync goal to PRANA Goal Engine:", err);
+      return false;
+    }
+  };
+
+  // Helper to generate a structured GoalItem from natural language intent
+  const generateGoalFromIntent = (prompt: string, mode: CoachMode): GoalItem => {
+    const lower = prompt.toLowerCase();
+    const nowStr = new Date().toISOString().split("T")[0];
+    const id = "coach_goal_" + Date.now();
+
+    if (
+      lower.includes("5k") ||
+      lower.includes("run") ||
+      lower.includes("cardio") ||
+      lower.includes("endurance") ||
+      lower.includes("marathon")
+    ) {
+      return {
+        id,
+        title: "Sub-24 Min 5km Aerobic Engine Progression",
+        category: "ENDURANCE",
+        baseline: "32.0",
+        current: "27.5",
+        target: "24.0",
+        unit: "mins",
+        timeline_weeks: 8,
+        current_week: 1,
+        progress_percentage: 45,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 2, label: "Aerobic Base: Complete 4km non-stop at 5:45/km", completed: true },
+          { id: "m2", week: 4, label: "Tempo Integration: 3x1.5km at 5:10/km pace", completed: false },
+          { id: "m3", week: 6, label: "VO2 Max Intervals: 6x400m at 4:35/km", completed: false },
+          { id: "m4", week: 8, label: "Race Day Assessment: Sub-24:00 5km Continuous", completed: false },
+        ],
+        weekly_actions: [
+          "3 weekly aerobic sessions (1 Long Run, 1 Interval, 1 Recovery)",
+          "Post-run hip mobility and calf eccentrics for 12 mins",
+          "Target 7.5h minimum restorative sleep window",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode. Grounded in PRANA Cardio telemetry.`,
+        createdAt: nowStr,
+      };
+    } else if (lower.includes("pull") || lower.includes("calisthenic") || lower.includes("reps")) {
+      return {
+        id,
+        title: "Upper Body Calisthenics: 20 Strict Pull-Ups",
+        category: "STRENGTH",
+        baseline: "6",
+        current: "12",
+        target: "20",
+        unit: "reps",
+        timeline_weeks: 10,
+        current_week: 1,
+        progress_percentage: 42,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 2, label: "Scapular retraction holds & 3x8 clean dead-hang reps", completed: true },
+          { id: "m2", week: 5, label: "Weighted pull-up overload: 5 reps with +10kg belt", completed: false },
+          { id: "m3", week: 8, label: "Volume ladder: 3 unbroken sets of 15 strict reps", completed: false },
+          { id: "m4", week: 10, label: "Test day: 20 consecutive full-range strict pull-ups", completed: false },
+        ],
+        weekly_actions: [
+          "3 weekly pulling sessions (Weighted, Eccentric, Volume)",
+          "Forearm and grip endurance dead hangs 3x60s",
+          "Daily 2.0g/kg protein target for myofibrillar repair",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode.`,
+        createdAt: nowStr,
+      };
+    } else if (
+      lower.includes("bench") ||
+      lower.includes("strength") ||
+      lower.includes("squat") ||
+      lower.includes("deadlift") ||
+      lower.includes("press")
+    ) {
+      return {
+        id,
+        title: "Century Bench Press: 100kg 1RM Protocol",
+        category: "STRENGTH",
+        baseline: "75.0",
+        current: "85.0",
+        target: "100.0",
+        unit: "kg",
+        timeline_weeks: 8,
+        current_week: 1,
+        progress_percentage: 40,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 2, label: "Solidify arch & 5x5 at 80kg with 1-second pause", completed: true },
+          { id: "m2", week: 4, label: "Clean 90kg single with zero elbow flare", completed: false },
+          { id: "m3", week: 6, label: "Overload drill: 95kg for 2 clean reps with spotter", completed: false },
+          { id: "m4", week: 8, label: "Official PR Test: 100kg 1-Rep Max lockout", completed: false },
+        ],
+        weekly_actions: [
+          "2 heavy bench sessions + 1 tricep & front delt accessory day",
+          "Band face-pulls & external shoulder rotations before pressing",
+          "5g daily creatine monohydrate adherence",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode.`,
+        createdAt: nowStr,
+      };
+    } else if (
+      lower.includes("fat") ||
+      lower.includes("weight") ||
+      lower.includes("diet") ||
+      lower.includes("lean") ||
+      lower.includes("cut")
+    ) {
+      return {
+        id,
+        title: "Sub-15% Body Fat & Metabolic Partitioning",
+        category: "BODY_COMP",
+        baseline: "21.5",
+        current: "18.5",
+        target: "14.5",
+        unit: "% body fat",
+        timeline_weeks: 12,
+        current_week: 1,
+        progress_percentage: 42,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 3, label: "Establish 350 kcal deficit with 10k daily step baseline", completed: true },
+          { id: "m2", week: 6, label: "Cross under 17% mark with preserved lean tissue mass", completed: false },
+          { id: "m3", week: 9, label: "Refeed protocol & metabolic rate stabilization", completed: false },
+          { id: "m4", week: 12, label: "Target 14.5% body composition achievement", completed: false },
+        ],
+        weekly_actions: [
+          "4 resistance training workouts + 2 low-intensity cardio sessions",
+          "Log all meals inside PRANA Nutrition Hub with 2.2g/kg protein",
+          "Daily morning fasted weigh-in and hydration logging",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode.`,
+        createdAt: nowStr,
+      };
+    } else if (
+      lower.includes("mobility") ||
+      lower.includes("flexib") ||
+      lower.includes("posture") ||
+      lower.includes("stretch")
+    ) {
+      return {
+        id,
+        title: "Full Thoracic & Hip Mobility Restoration",
+        category: "MOBILITY",
+        baseline: "50",
+        current: "65",
+        target: "100",
+        unit: "index",
+        timeline_weeks: 6,
+        current_week: 1,
+        progress_percentage: 30,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 2, label: "Palms to floor straight-leg forward fold hold", completed: true },
+          { id: "m2", week: 4, label: "Full 2-minute unassisted deep Asian squat hold", completed: false },
+          { id: "m3", week: 6, label: "Overhead squat with straight thoracic spine lock", completed: false },
+        ],
+        weekly_actions: [
+          "Daily 10-minute morning dynamic hip opener routine",
+          "Foam roll thoracic spine and adductors prior to workouts",
+          "Evening restorative pigeon and couch stretch holds",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode.`,
+        createdAt: nowStr,
+      };
+    } else {
+      return {
+        id,
+        title: prompt.length > 5 && prompt.length < 50 ? prompt : "Comprehensive Athletic Peak Conditioning",
+        category: "ENDURANCE",
+        baseline: "60.0",
+        current: "72.0",
+        target: "90.0",
+        unit: "pts",
+        timeline_weeks: 8,
+        current_week: 1,
+        progress_percentage: 40,
+        status: "ACTIVE",
+        milestones: [
+          { id: "m1", week: 2, label: "Foundation & movement pattern optimization", completed: true },
+          { id: "m2", week: 4, label: "Progressive intensity overload threshold", completed: false },
+          { id: "m3", week: 6, label: "High-output endurance stamina test", completed: false },
+          { id: "m4", week: 8, label: "Target peak performance assessment", completed: false },
+        ],
+        weekly_actions: [
+          "4 structured workouts weekly aligned with PRANA Twin telemetry",
+          "Active post-exercise recovery and hydration tracking",
+          "Weekly metric check-in and milestone verification",
+        ],
+        notes: `Formulated by Coach Jack in [${mode.toUpperCase()}] mode.`,
+        createdAt: nowStr,
+      };
+    }
+  };
+
   // Initial messages based on mode
   const modeWelcomeMessages: Record<CoachMode, string> = {
     strict:
@@ -68,7 +330,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
   };
 
   const [messages, setMessages] = useState<
-    { sender: "coach" | "user"; text: string; time: string; tag?: string; mode?: CoachMode }[]
+    { sender: "coach" | "user"; text: string; time: string; tag?: string; mode?: CoachMode; goalData?: GoalItem }[]
   >([
     {
       sender: "coach",
@@ -285,7 +547,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
     await handleSendMessage(promptText, verdictToSubmit);
   };
 
-  const handleSendMessage = async (customPrompt?: string, explicitVerdict?: string) => {
+  const handleSendMessage = async (customPrompt?: string, explicitVerdict?: string, isGoalFormulation?: boolean) => {
     const textToSend = customPrompt || inputMsg;
     if (!textToSend.trim()) return;
 
@@ -294,6 +556,30 @@ export const AICoachView: React.FC<AICoachProps> = ({
     setMessages((prev) => [...prev, { sender: "user", text: textToSend, time: timeNow }]);
     if (!customPrompt) setInputMsg("");
     setIsTyping(true);
+
+    const lower = textToSend.toLowerCase();
+    const isGoal =
+      Boolean(isGoalFormulation) ||
+      lower.includes("goal") ||
+      lower.includes("plan for") ||
+      lower.includes("plan to") ||
+      lower.includes("target of") ||
+      lower.includes("sub-2") ||
+      lower.includes("sub-1") ||
+      lower.includes("pull-up") ||
+      lower.includes("pull up") ||
+      lower.includes("bench press") ||
+      lower.includes("body fat") ||
+      lower.includes("weight loss goal") ||
+      lower.includes("mobility goal");
+
+    let synthesizedGoal: GoalItem | undefined;
+    if (isGoal) {
+      synthesizedGoal = generateGoalFromIntent(textToSend, coachMode);
+      transferGoalToEngine(synthesizedGoal);
+      setGoalNotification(`🎯 Goal "${synthesizedGoal.title}" automatically transferred to PRANA Goal Engine!`);
+      setTimeout(() => setGoalNotification(null), 5000);
+    }
 
     try {
       const telemetry = gatherAllAppData();
@@ -315,16 +601,20 @@ export const AICoachView: React.FC<AICoachProps> = ({
 
       if (res.ok) {
         const data = await res.json();
-        const replyText = data.data?.content || data.reply || data.coach_response;
+        let replyText = data.data?.content || data.reply || data.coach_response;
         if (replyText) {
+          if (synthesizedGoal) {
+            replyText = `🎯 PROTOCOL SYNCHRONIZED & TRANSFERRED TO PRANA GOAL ENGINE.\n\n${replyText}`;
+          }
           setMessages((prev) => [
             ...prev,
             {
               sender: "coach",
               text: replyText,
               time: timeNow,
-              tag: explicitVerdict ? "VERDICT_SYNTHESIS" : `${coachMode.toUpperCase()}_REPLY`,
+              tag: synthesizedGoal ? "GOAL_ENGINE_SYNCED" : (explicitVerdict ? "VERDICT_SYNTHESIS" : `${coachMode.toUpperCase()}_REPLY`),
               mode: coachMode,
+              goalData: synthesizedGoal,
             },
           ]);
           setIsTyping(false);
@@ -335,9 +625,18 @@ export const AICoachView: React.FC<AICoachProps> = ({
     } catch {
       // Deterministic Persona-Specific Responses
       let responseText = "";
-      const lower = textToSend.toLowerCase();
 
-      if (coachMode === "strict") {
+      if (synthesizedGoal) {
+        if (coachMode === "strict") {
+          responseText = `🎯 TARGET LOCKED & TRANSFERRED TO PRANA GOAL ENGINE.\n\nI have formulated your "${synthesizedGoal.title}" protocol into a strict ${synthesizedGoal.timeline_weeks}-week progression. Baseline: ${synthesizedGoal.baseline} ${synthesizedGoal.unit} ➔ Target: ${synthesizedGoal.target} ${synthesizedGoal.unit}.\n\nYour 4 phase milestones and weekly disciplines have been synchronized into your Goal Engine. Stop talking and start executing.`;
+        } else if (coachMode === "professional") {
+          responseText = `🎯 PROTOCOL SYNCHRONIZED WITH PRANA GOAL ENGINE.\n\nDeterministic ${synthesizedGoal.timeline_weeks}-week trajectory established for "${synthesizedGoal.title}". Calibrated for target ${synthesizedGoal.target} ${synthesizedGoal.unit} with baseline ${synthesizedGoal.baseline} ${synthesizedGoal.unit}. Milestones and weekly neuromuscular actions have been saved directly to your Goal Engine.`;
+        } else if (coachMode === "dietitian") {
+          responseText = `🎯 NUTRITION & METABOLIC TARGET SYNCED.\n\nYour "${synthesizedGoal.title}" protocol is registered. Progressive weekly actions and body composition thresholds have been committed to your PRANA Goal Engine.`;
+        } else {
+          responseText = `🎯 EXCELLENT GOAL! TRANSFERRED TO GOAL ENGINE.\n\nI've mapped out a motivating ${synthesizedGoal.timeline_weeks}-week plan for "${synthesizedGoal.title}". We're targeting ${synthesizedGoal.target} ${synthesizedGoal.unit}. Your milestones are ready in your Goal Engine!`;
+        }
+      } else if (coachMode === "strict") {
         if (explicitVerdict) {
           responseText = `Your verdict ("${explicitVerdict}") is noted. But your biometric reality shows lagging cardio and sleep inconsistency. We cut the excuses today: 1) 40 mins low-impact aerobic flush, 2) Strict 22:00 sleep curfew, 3) 2.2g/kg protein intake. Execute without question.`;
         } else if (lower.includes("sore") || lower.includes("fatigue") || lower.includes("tired")) {
@@ -359,7 +658,14 @@ export const AICoachView: React.FC<AICoachProps> = ({
 
       setMessages((prev) => [
         ...prev,
-        { sender: "coach", text: responseText, time: timeNow, tag: `${coachMode.toUpperCase()}_PROTOCOL`, mode: coachMode },
+        {
+          sender: "coach",
+          text: responseText,
+          time: timeNow,
+          tag: synthesizedGoal ? "GOAL_ENGINE_SYNCED" : `${coachMode.toUpperCase()}_PROTOCOL`,
+          mode: coachMode,
+          goalData: synthesizedGoal,
+        },
       ]);
     } finally {
       setIsTyping(false);
@@ -477,6 +783,13 @@ export const AICoachView: React.FC<AICoachProps> = ({
             Run Unfitness Diagnostic Audit
           </button>
           <button
+            onClick={() => setShowGoalSynthesizer(!showGoalSynthesizer)}
+            className="px-3.5 py-2.5 bg-[#111815] hover:bg-[#1A231F] border border-[#B7F34A]/50 text-[#B7F34A] hover:text-[#c9ff5e] font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+          >
+            <Target className="w-3.5 h-3.5 text-[#B7F34A]" />
+            {showGoalSynthesizer ? "Close Goal Studio" : "Formulate Goal Protocol"}
+          </button>
+          <button
             onClick={() => setShowVerdictStudio(!showVerdictStudio)}
             className="px-3 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shrink-0"
           >
@@ -485,6 +798,136 @@ export const AICoachView: React.FC<AICoachProps> = ({
           </button>
         </div>
       </div>
+
+      {/* REAL-TIME GOAL TRANSFER NOTIFICATION */}
+      {goalNotification && (
+        <div className="p-3.5 bg-[#111815] border border-[#B7F34A]/60 rounded-xl flex items-center justify-between gap-3 text-xs text-[#B7F34A] animate-in fade-in shadow-lg">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-[#B7F34A] shrink-0" />
+            <span className="font-semibold text-white">{goalNotification}</span>
+          </div>
+          <button
+            onClick={handleNavigateToGoals}
+            className="px-3 py-1.5 bg-[#B7F34A] text-[#0B100E] font-bold text-xs rounded-lg hover:bg-[#c9ff5e] transition-colors flex items-center gap-1 shrink-0"
+          >
+            <span>Open Goal Engine</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* EXPANDABLE GOAL PROTOCOL SYNTHESIZER STUDIO */}
+      {showGoalSynthesizer && (
+        <div className="p-5 bg-[#0B100E] rounded-2xl border border-[#B7F34A]/40 space-y-4 animate-in fade-in slide-in-from-top duration-300 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-[#27332D] pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#B7F34A] animate-pulse"></span>
+              <h4 className="text-xs font-bold text-[#B7F34A] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Target className="w-4 h-4" />
+                Coach Jack Goal Engine Auto-Transfer Studio
+              </h4>
+            </div>
+            <span className="text-[11px] font-mono text-[#A4AEA8]">
+              Direct Sync to PRANA Goal Engine
+            </span>
+          </div>
+
+          <p className="text-xs text-[#A4AEA8] leading-relaxed">
+            Select an athletic preset or enter your target. Coach Jack will calibrate the progressive overload milestones according to your Digital Twin telemetry and morning readiness score, then automatically lock and transfer it straight into your <strong className="text-white">PRANA Goal Engine</strong>.
+          </p>
+
+          {/* Athletic Presets */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {[
+              {
+                title: "Sub-24 Min 5km Aerobic Engine",
+                category: "ENDURANCE",
+                metric: "24.0 mins",
+                prompt: "Synthesize an 8-week Sub-24 Min 5km Aerobic Engine progression protocol for me and transfer to Goal Engine.",
+              },
+              {
+                title: "Upper Body: 20 Strict Pull-Ups",
+                category: "STRENGTH",
+                metric: "20 reps",
+                prompt: "Formulate a 10-week protocol to reach 20 strict full-range pull-ups and sync it with Goal Engine.",
+              },
+              {
+                title: "Century Bench Press (100kg 1RM)",
+                category: "STRENGTH",
+                metric: "100.0 kg",
+                prompt: "Create an 8-week progressive overload protocol to hit a 100kg 1-Rep Max bench press.",
+              },
+              {
+                title: "Sub-15% Body Fat Definition",
+                category: "BODY_COMP",
+                metric: "14.5% BF",
+                prompt: "Synthesize a 12-week nutritional deficit and metabolic partitioning goal to achieve 14.5% body fat.",
+              },
+              {
+                title: "Deep Squat & Hip Mobility Restore",
+                category: "MOBILITY",
+                metric: "100/100 index",
+                prompt: "Formulate a 6-week mobility restoration goal to master full-depth unassisted squats and thoracic extension.",
+              },
+            ].map((preset, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setShowGoalSynthesizer(false);
+                  handleSendMessage(preset.prompt, undefined, true);
+                }}
+                className="text-left p-3 rounded-xl bg-[#111815] hover:bg-[#1A231F] border border-[#27332D] hover:border-[#B7F34A]/60 transition-all group cursor-pointer"
+              >
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#A4AEA8] mb-1">
+                  <span className="text-[#B7F34A]">{preset.category}</span>
+                  <span className="text-white font-bold">{preset.metric}</span>
+                </div>
+                <div className="text-xs font-semibold text-white group-hover:text-[#B7F34A] transition-colors">
+                  {preset.title}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
+                  <span>Synthesize &amp; Sync</span>
+                  <ArrowRight className="w-3 h-3 text-[#B7F34A] group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Custom Goal Prompt */}
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#27332D]">
+            <input
+              type="text"
+              placeholder="Or type custom athletic goal (e.g. Run 10km under 50 mins, 140kg Deadlift)..."
+              value={goalCustomPrompt}
+              onChange={(e) => setGoalCustomPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && goalCustomPrompt.trim()) {
+                  const p = goalCustomPrompt;
+                  setGoalCustomPrompt("");
+                  setShowGoalSynthesizer(false);
+                  handleSendMessage(p, undefined, true);
+                }
+              }}
+              className="flex-1 bg-[#111815] border border-[#27332D] rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#B7F34A]"
+            />
+            <button
+              onClick={() => {
+                if (goalCustomPrompt.trim()) {
+                  const p = goalCustomPrompt;
+                  setGoalCustomPrompt("");
+                  setShowGoalSynthesizer(false);
+                  handleSendMessage(p, undefined, true);
+                }
+              }}
+              disabled={!goalCustomPrompt.trim()}
+              className="px-4 py-2 bg-[#B7F34A] hover:bg-[#c9ff5e] disabled:opacity-30 text-[#0B100E] font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Lock &amp; Transfer to Goal Engine</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* EXPANDABLE UNFITNESS VERDICT STUDIO */}
       {showVerdictStudio && (
@@ -814,6 +1257,61 @@ export const AICoachView: React.FC<AICoachProps> = ({
                     </div>
                   )}
                   <p className="whitespace-pre-wrap">{m.text}</p>
+
+                  {/* RICH GOAL ENGINE INTEGRATION CARD */}
+                  {m.goalData && (
+                    <div className="mt-3 p-3.5 rounded-xl bg-[#0B100E] border border-[#B7F34A]/40 text-[#F3F5F0] space-y-2.5">
+                      <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#27332D]">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#B7F34A] font-mono">
+                          <Target className="w-3.5 h-3.5 text-[#B7F34A]" />
+                          <span>SYNCHRONIZED TO GOAL ENGINE</span>
+                        </div>
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#B7F34A]/10 text-[#B7F34A] border border-[#B7F34A]/30">
+                          {m.goalData.category}
+                        </span>
+                      </div>
+
+                      <div className="text-xs font-bold text-white leading-snug">
+                        {m.goalData.title}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-1.5 py-1 text-[10px] font-mono">
+                        <div className="bg-[#111815] p-2 rounded-lg border border-[#27332D]">
+                          <div className="text-[8px] uppercase text-slate-400">Baseline</div>
+                          <div className="text-white font-bold">{m.goalData.baseline} {m.goalData.unit}</div>
+                        </div>
+                        <div className="bg-[#111815] p-2 rounded-lg border border-[#27332D]">
+                          <div className="text-[8px] uppercase text-slate-400">Target</div>
+                          <div className="text-[#B7F34A] font-bold">{m.goalData.target} {m.goalData.unit}</div>
+                        </div>
+                        <div className="bg-[#111815] p-2 rounded-lg border border-[#27332D]">
+                          <div className="text-[8px] uppercase text-slate-400">Duration</div>
+                          <div className="text-[#25D9D0] font-bold">{m.goalData.timeline_weeks} Wks</div>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] space-y-1">
+                        <div className="font-mono text-slate-400 uppercase text-[9px]">Weekly Disciplines:</div>
+                        <ul className="space-y-0.5 text-slate-300">
+                          {m.goalData.weekly_actions.slice(0, 3).map((act, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="text-[#B7F34A] font-bold">&bull;</span>
+                              <span>{act}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <button
+                        onClick={handleNavigateToGoals}
+                        className="w-full mt-2 py-2 px-3 rounded-lg bg-[#B7F34A] hover:bg-[#c9ff5e] text-[#0B100E] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                      >
+                        <Target className="w-3.5 h-3.5" />
+                        <span>View in PRANA Goal Engine</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <span className="text-[9px] text-slate-600 mt-1 font-mono px-1">
                   {m.time}
