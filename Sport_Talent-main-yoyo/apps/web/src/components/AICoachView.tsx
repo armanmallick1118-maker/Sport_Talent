@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Target,
   ArrowRight,
+  Dumbbell,
 } from "lucide-react";
 
 export interface MilestoneItem {
@@ -73,6 +74,37 @@ export const AICoachView: React.FC<AICoachProps> = ({
 }) => {
   const readiness = readinessData?.readiness_score ?? 74;
 
+  // Dynamically resolve actual athlete name across registration, session, and profile
+  const resolveUserName = (): string => {
+    if (typeof window === "undefined") return "Athlete";
+    try {
+      const direct = localStorage.getItem("userName");
+      if (direct && direct.trim()) return direct.trim().split(" ")[0];
+
+      const profile = localStorage.getItem("prana_user_profile") || localStorage.getItem("athena_user_profile");
+      if (profile) {
+        const p = JSON.parse(profile);
+        if (p.fullName && p.fullName.trim()) return p.fullName.trim().split(" ")[0];
+        if (p.name && p.name.trim()) return p.name.trim().split(" ")[0];
+      }
+
+      const rawUser = localStorage.getItem("user");
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        if (u.fullName && u.fullName.trim()) return u.fullName.trim().split(" ")[0];
+        if (u.name && u.name.trim()) return u.name.trim().split(" ")[0];
+      }
+
+      const athenaProfile = localStorage.getItem("athena_profile");
+      if (athenaProfile) {
+        const ap = JSON.parse(athenaProfile);
+        if (ap.name && ap.name.trim()) return ap.name.trim().split(" ")[0];
+      }
+    } catch {}
+    return "Athlete";
+  };
+
+  const [userName, setUserName] = useState<string>("Athlete");
   const [coachMode, setCoachMode] = useState<CoachMode>("strict");
 
   // Dietitian Interactive Macro Calculator State
@@ -317,16 +349,18 @@ export const AICoachView: React.FC<AICoachProps> = ({
     }
   };
 
-  // Initial messages based on mode
-  const modeWelcomeMessages: Record<CoachMode, string> = {
-    strict:
-      "Listen closely. I am Coach Jack. I hold my athletes to unyielding professional standards. I've audited your Digital Twin telemetry and morning readiness score (74/100). If you want elite results, execute your plan with precision. Zero excuses.",
-    professional:
-      "Welcome. Coach Jack here operating in Sports Scientist mode. Your physiological recovery is indexed at 74/100, indicating adequate autonomic balance. We will calibrate training stimulus deterministically to avoid metabolic overreach.",
-    lenient:
-      "Hey there! Coach Jack here. Remember that fitness is a marathon, not a sprint. You are doing fantastic, and your body is in a good place today. Listen to your joints, take your time, and enjoy moving today!",
-    dietitian:
-      "Greetings! Coach Jack in Elite Sports Dietitian mode. Nutrient partitioning and metabolic timing dictate 80% of your performance ceiling. Let's calibrate your protein grams, glycogen replenishment, and hydration balance today.",
+  // Persona-specific dynamic welcome message generator
+  const getModeWelcomeMessage = (mode: CoachMode, name: string, readinessScore: number): string => {
+    switch (mode) {
+      case "strict":
+        return `Listen closely, ${name}. I am Coach Jack. I hold my athletes to unyielding professional standards. I've audited your Digital Twin telemetry and morning readiness score (${readinessScore}/100). If you want elite results, execute your plan with precision. Zero excuses.`;
+      case "professional":
+        return `Welcome, ${name}. Coach Jack here operating in Sports Scientist mode. Your physiological recovery is indexed at ${readinessScore}/100, indicating adequate autonomic balance. We will calibrate training stimulus deterministically to avoid metabolic overreach.`;
+      case "dietitian":
+        return `Greetings, ${name}! Coach Jack in Elite Sports Dietitian mode. Nutrient partitioning and metabolic timing dictate 80% of your performance ceiling. Let's calibrate your protein grams, glycogen replenishment, and hydration balance today.`;
+      case "lenient":
+        return `Hey there, ${name}! Coach Jack here. Remember that fitness is a marathon, not a sprint. You are doing fantastic, and your body is in a good place today. Listen to your joints, take your time, and enjoy moving today!`;
+    }
   };
 
   const [messages, setMessages] = useState<
@@ -334,7 +368,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
   >([
     {
       sender: "coach",
-      text: modeWelcomeMessages.strict,
+      text: "Standing by. Initializing Coach Jack telemetry...",
       time: "10:15 AM",
       tag: "DISCIPLINE_BASELINE",
       mode: "strict",
@@ -344,6 +378,38 @@ export const AICoachView: React.FC<AICoachProps> = ({
   const [inputMsg, setInputMsg] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Sync actual user name on mount and whenever profile changes
+  useEffect(() => {
+    const activeName = resolveUserName();
+    setUserName(activeName);
+
+    setMessages((prev) => {
+      if (prev.length === 1 && (prev[0].tag === "DISCIPLINE_BASELINE" || prev[0].text.includes("Initializing Coach Jack"))) {
+        return [
+          {
+            ...prev[0],
+            text: getModeWelcomeMessage(coachMode, activeName, readiness),
+          },
+        ];
+      }
+      return prev;
+    });
+
+    const handleProfileUpdate = () => {
+      const updated = resolveUserName();
+      setUserName(updated);
+    };
+
+    window.addEventListener("prana_profile_updated", handleProfileUpdate);
+    window.addEventListener("athena_profile_updated", handleProfileUpdate);
+    window.addEventListener("storage", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("prana_profile_updated", handleProfileUpdate);
+      window.removeEventListener("athena_profile_updated", handleProfileUpdate);
+      window.removeEventListener("storage", handleProfileUpdate);
+    };
+  }, [coachMode, readiness]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -385,8 +451,9 @@ export const AICoachView: React.FC<AICoachProps> = ({
 
   // Comprehensive Telemetry Harvester across all webapp subsystems
   const gatherAllAppData = () => {
-    let profileData = {
-      name: "Alex",
+    const activeName = resolveUserName();
+    let profileData: any = {
+      name: activeName,
       gender: "Male",
       age: "26",
       weight: athleteWeight,
@@ -398,6 +465,16 @@ export const AICoachView: React.FC<AICoachProps> = ({
 
     if (typeof window !== "undefined") {
       try {
+        const pranaProfile = localStorage.getItem("prana_user_profile") || localStorage.getItem("athena_user_profile");
+        if (pranaProfile) {
+          const parsed = JSON.parse(pranaProfile);
+          profileData = { ...profileData, ...parsed, name: parsed.fullName || activeName };
+        }
+        const userObj = localStorage.getItem("user");
+        if (userObj) {
+          const u = JSON.parse(userObj);
+          if (u.fullName) profileData.name = u.fullName;
+        }
         const saved = localStorage.getItem("athena_profile");
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -448,7 +525,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
       ...prev,
       {
         sender: "coach",
-        text: modeWelcomeMessages[newMode],
+        text: getModeWelcomeMessage(newMode, userName, readiness),
         time: timeNow,
         tag: `MODE_SWITCH_${newMode.toUpperCase()}`,
         mode: newMode,
@@ -460,12 +537,61 @@ export const AICoachView: React.FC<AICoachProps> = ({
     setMessages([
       {
         sender: "coach",
-        text: `Log reset. Operating in [${coachMode.toUpperCase()}] mode. What is your training or nutritional inquiry right now?`,
+        text: `Log reset, ${userName}. Operating in [${coachMode.toUpperCase()}] mode. What is your training, diet, or goal protocol inquiry right now?`,
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         tag: "LOG_CLEARED",
         mode: coachMode,
       },
     ]);
+  };
+
+  // Convert any message advice into an active PRANA Goal Item
+  const handleConvertMessageToGoal = (msgText: string, msgIndex: number) => {
+    const newGoal = generateGoalFromIntent(msgText, coachMode);
+    transferGoalToEngine(newGoal);
+    setGoalNotification(`🎯 Goal "${newGoal.title}" automatically transferred to PRANA Goal Engine!`);
+    setTimeout(() => setGoalNotification(null), 5000);
+
+    setMessages((prev) =>
+      prev.map((m, idx) => (idx === msgIndex ? { ...m, goalData: newGoal } : m))
+    );
+  };
+
+  // Quick Action execution from toolbar
+  const handleQuickAction = (action: "diet" | "fitness" | "recovery" | "goal") => {
+    const currentName = resolveUserName();
+    if (action === "diet") {
+      handleSendMessage(
+        `Create a comprehensive personalized daily diet and meal plan for me (${currentName}) and transfer it to my Goal Engine`,
+        undefined,
+        true
+      );
+    } else if (action === "fitness") {
+      handleSendMessage(
+        `Build a complete 4-day periodized athletic workout split routine for me (${currentName}) and transfer it to my Goal Engine`,
+        undefined,
+        true
+      );
+    } else if (action === "recovery") {
+      handleSendMessage(
+        `Formulate an autonomic recovery, HRV deload, and restorative sleep protocol for me (${currentName}) and transfer to Goal Engine`,
+        undefined,
+        true
+      );
+    } else if (action === "goal") {
+      setShowGoalSynthesizer(true);
+    }
+  };
+
+  // Convert input text into an active goal
+  const handleSetGoalFromInput = () => {
+    if (!inputMsg.trim()) {
+      setShowGoalSynthesizer(true);
+      return;
+    }
+    const text = inputMsg;
+    setInputMsg("");
+    handleSendMessage(`Lock and transfer this target to my PRANA Goal Engine: "${text}"`, undefined, true);
   };
 
   // Run Biometric & Unfitness Diagnostic Audit
@@ -557,9 +683,62 @@ export const AICoachView: React.FC<AICoachProps> = ({
     if (!customPrompt) setInputMsg("");
     setIsTyping(true);
 
+    const activeName = resolveUserName();
     const lower = textToSend.toLowerCase();
+    const cleanLower = lower.trim().replace(/[?!.,]/g, "");
+
+    // Check for user addressing or greeting Coach Jack
+    const isJackGreeting =
+      cleanLower === "hey jack" ||
+      cleanLower === "hi jack" ||
+      cleanLower === "jack" ||
+      cleanLower === "coach jack" ||
+      cleanLower === "hello jack" ||
+      cleanLower === "yo jack" ||
+      cleanLower.startsWith("hey jack") ||
+      cleanLower.startsWith("hi jack") ||
+      cleanLower.startsWith("hello jack") ||
+      cleanLower.startsWith("coach jack") ||
+      cleanLower.startsWith("yo jack") ||
+      cleanLower === "hey coach" ||
+      cleanLower === "hi coach" ||
+      cleanLower === "hello" ||
+      cleanLower === "hey";
+
+    // High-power capabilities detection
+    const isDietPlan =
+      lower.includes("diet plan") ||
+      lower.includes("meal plan") ||
+      lower.includes("nutrition plan") ||
+      lower.includes("what should i eat") ||
+      lower.includes("eating plan") ||
+      lower.includes("calorie plan") ||
+      lower.includes("macro plan") ||
+      lower.includes("diet for");
+
+    const isFitnessPlan =
+      lower.includes("fitness plan") ||
+      lower.includes("workout plan") ||
+      lower.includes("training split") ||
+      lower.includes("workout routine") ||
+      lower.includes("exercise routine") ||
+      lower.includes("split routine") ||
+      lower.includes("lifting plan") ||
+      lower.includes("exercise plan") ||
+      lower.includes("muscle routine");
+
+    const isRecoveryPlan =
+      lower.includes("recovery plan") ||
+      lower.includes("recovery routine") ||
+      lower.includes("sleep protocol") ||
+      lower.includes("deload plan") ||
+      lower.includes("soreness protocol");
+
     const isGoal =
       Boolean(isGoalFormulation) ||
+      isDietPlan ||
+      isFitnessPlan ||
+      isRecoveryPlan ||
       lower.includes("goal") ||
       lower.includes("plan for") ||
       lower.includes("plan to") ||
@@ -574,7 +753,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
       lower.includes("mobility goal");
 
     let synthesizedGoal: GoalItem | undefined;
-    if (isGoal) {
+    if (isGoal && !isJackGreeting) {
       synthesizedGoal = generateGoalFromIntent(textToSend, coachMode);
       transferGoalToEngine(synthesizedGoal);
       setGoalNotification(`🎯 Goal "${synthesizedGoal.title}" automatically transferred to PRANA Goal Engine!`);
@@ -623,37 +802,142 @@ export const AICoachView: React.FC<AICoachProps> = ({
       }
       throw new Error("Fallback needed");
     } catch {
-      // Deterministic Persona-Specific Responses
+      // Deterministic Persona-Specific Responses in Jack's True Nature
       let responseText = "";
 
-      if (synthesizedGoal) {
+      // 1. User says "Hey Jack" or greets Coach Jack
+      if (isJackGreeting) {
         if (coachMode === "strict") {
-          responseText = `🎯 TARGET LOCKED & TRANSFERRED TO PRANA GOAL ENGINE.\n\nI have formulated your "${synthesizedGoal.title}" protocol into a strict ${synthesizedGoal.timeline_weeks}-week progression. Baseline: ${synthesizedGoal.baseline} ${synthesizedGoal.unit} ➔ Target: ${synthesizedGoal.target} ${synthesizedGoal.unit}.\n\nYour 4 phase milestones and weekly disciplines have been synchronized into your Goal Engine. Stop talking and start executing.`;
+          responseText = `Stand at attention, ${activeName}. Coach Jack here. I don't trade in small talk or excuses. Your readiness is sitting at ${readiness}/100 today. You've got the floor: do we lock in your diet macros, execute a savage workout split, or formulate a new goal protocol for your Goal Engine? Report in.`;
         } else if (coachMode === "professional") {
-          responseText = `🎯 PROTOCOL SYNCHRONIZED WITH PRANA GOAL ENGINE.\n\nDeterministic ${synthesizedGoal.timeline_weeks}-week trajectory established for "${synthesizedGoal.title}". Calibrated for target ${synthesizedGoal.target} ${synthesizedGoal.unit} with baseline ${synthesizedGoal.baseline} ${synthesizedGoal.unit}. Milestones and weekly neuromuscular actions have been saved directly to your Goal Engine.`;
+          responseText = `Greetings, ${activeName}. Coach Jack performance telemetry stream is fully synchronized. Autonomic recovery index is at ${readiness}/100 with baseline biomarkers nominal. I'm calibrated to formulate your periodized training split, calculate nutritional partitioning, or audit kinematic joint stress. What is your directive?`;
         } else if (coachMode === "dietitian") {
-          responseText = `🎯 NUTRITION & METABOLIC TARGET SYNCED.\n\nYour "${synthesizedGoal.title}" protocol is registered. Progressive weekly actions and body composition thresholds have been committed to your PRANA Goal Engine.`;
+          responseText = `Hello, ${activeName}! Coach Jack in Elite Sports Dietitian mode. Proper nutrient partitioning dictates 80% of your performance ceiling. Have you hit your morning hydration and protein window? Tell me if you want me to generate a complete daily meal plan or sync your nutritional targets to your Goal Engine.`;
         } else {
-          responseText = `🎯 EXCELLENT GOAL! TRANSFERRED TO GOAL ENGINE.\n\nI've mapped out a motivating ${synthesizedGoal.timeline_weeks}-week plan for "${synthesizedGoal.title}". We're targeting ${synthesizedGoal.target} ${synthesizedGoal.unit}. Your milestones are ready in your Goal Engine!`;
+          responseText = `Hey ${activeName}! Great to see you today. Your readiness score is looking awesome at ${readiness}/100. Whether you want to map out a fun workout routine, plan some delicious healthy meals, or set an exciting goal in your Goal Engine, I'm right here in your corner. What are we aiming for today?`;
+        }
+      }
+      // 2. User requests a Diet / Nutrition Plan
+      else if (isDietPlan) {
+        const calTarget = Math.round(athleteWeight * 33);
+        const protTarget = Math.round(athleteWeight * 2.2);
+        const carbTarget = Math.round(athleteWeight * 3.8);
+        const fatTarget = Math.round(athleteWeight * 0.85);
+        const waterTarget = (athleteWeight * 0.04).toFixed(1);
+
+        responseText = `🥗 ELITE CHRONO-NUTRITION & METABOLIC MEAL PLAN FOR ${activeName.toUpperCase()}
+[Calibrated for ${athleteWeight}kg Athlete | Morning Readiness: ${readiness}/100]
+
+📊 DAILY MACRONUTRIENT TARGETS:
+• Energy Ceiling: ~${calTarget} kcal/day
+• Protein Target: ${protTarget}g (2.2g/kg lean muscle synthesis)
+• Complex Carbs: ${carbTarget}g (steady liver & muscle glycogen)
+• Healthy Fats: ${fatTarget}g (hormonal synthesis & joint protection)
+• Hydration Baseline: ${waterTarget} Liters / day
+
+🍽️ 4-STAGE MEAL TIMING PROTOCOL:
+1. MEAL 1 - METABOLIC PRIMING BREAKFAST (08:00):
+   - 75g Rolled Oats or Sprouted Moong Poha
+   - 35g Whey Isolate / Plant Protein (or 4 Whole Eggs + 2 Whites)
+   - Handful of fresh blueberries & 10g crushed almonds
+   - 500ml water with a pinch of pink Himalayan rock salt
+
+2. MEAL 2 - SUSTAINED MIDDAY ANABOLIC FUEL (13:00):
+   - 180g Grilled Chicken Breast / Low-fat Paneer / Pan-seared Tofu
+   - 150g Cooked Quinoa or Brown Basmati Rice
+   - 1 Cup Steamed Broccoli, Green Beans & Mixed Greens
+   - 1 Tbsp Extra Virgin Olive Oil / 1/2 Medium Avocado
+
+3. MEAL 3 - PERI-WORKOUT GLYCOGEN & ELECTROLYTES:
+   - 45 min Pre-Workout: 1 Large Ripe Banana + 250ml Coconut Water
+   - Immediately Post-Workout: 30g Fast-Acting Whey Protein + 2 Rice Cakes with Honey
+
+4. MEAL 4 - NIGHT CELLULAR REPAIR & DEEP SLEEP (20:30):
+   - 180g Baked Salmon / Grilled Fish / Lentil Dahl with Tempeh
+   - 200g Roasted Sweet Potato or Steamed Vegetables
+   - Supplement: 400mg Magnesium Glycinate 30 mins before sleep
+
+🎯 AUTOMATICALLY SYNCED TO PRANA GOAL ENGINE:
+Your target of ${protTarget}g Protein & ${calTarget} kcal daily nutrition has been registered into your Goal Engine.`;
+      }
+      // 3. User requests a Fitness / Workout Split Plan
+      else if (isFitnessPlan) {
+        responseText = `🏋️ PERIODIZED ATHLETIC PERFORMANCE SPLIT FOR ${activeName.toUpperCase()}
+[Readiness Indexed at ${readiness}/100 | Digital Twin Telemetry Aligned]
+
+⚡ 4-DAY PERIODIZATION BLUEPRINT:
+
+• DAY 1: POSTERIOR CHAIN & FOUNDATIONAL FORCE
+  1. Barbell / Goblet Back Squat: 4 sets x 6 reps (RPE 8, 2 min rest)
+  2. Romanian Deadlifts: 3 sets x 8 reps (RPE 7.5, controlled 3-sec eccentric)
+  3. Bulgarian Split Squats: 3 sets x 10 reps/leg
+  4. Hanging Knee/Leg Raises: 3 sets x 15 reps
+  Finisher: 5 min Hip mobility pigeon stretch + couch stretch
+
+• DAY 2: UPPER BODY KINETIC POWER & HORIZONTAL PULL
+  1. Barbell Bench Press or Weighted Push-Ups: 4 sets x 6-8 reps
+  2. Neutral-Grip Pull-Ups or Heavy Inverted Rows: 4 sets x 8 reps
+  3. Overhead Dumbbell Military Press: 3 sets x 8-10 reps
+  4. Incline Dumbbell Chest-Supported Rows: 3 sets x 12 reps
+  5. Face Pulls with External Rotation: 3 sets x 15 reps
+
+• DAY 3: ZONE 2 CARDIAC FLUSH & ACTIVE RECOVERY
+  - 40 mins uninterrupted low-intensity steady-state (Jog / Assault Bike / Row)
+  - Target Heart Rate: 130-142 bpm (aerobic mitochondrial upregulation)
+  - 15 min Full-body Thoracic Spine & Foam Rolling Protocol
+
+• DAY 4: HIGH-OUTPUT EXPLOSIVE POWER & CONDITIONING
+  1. Kettlebell Swings / Power Cleans: 5 sets x 5 explosive reps
+  2. Heavy Farmer's Walk: 4 sets x 40 meters
+  3. Bodyweight Dips + Chin-Ups Superset: 3 sets to technical fatigue
+  4. 500m Row All-Out Ergometer Sprint: 3 rounds (90s rest)
+
+🎯 AUTOMATICALLY SYNCED TO PRANA GOAL ENGINE:
+This 4-day athletic split has been locked into your Goal Engine. Zero skipped sets.`;
+      }
+      // 4. User requests a Recovery / Deload Plan
+      else if (isRecoveryPlan) {
+        responseText = `🔋 AUTONOMIC RECOVERY & DELOAD PROTOCOL FOR ${activeName.toUpperCase()}
+[Autonomic Recovery Grounding | Sleep Architecture Focus]
+
+RESTORE PROTOCOL:
+1. Circadian Curfew: Strict 22:15 lights out; blue-blockers 60m before bed
+2. Contrast Hydrotherapy: 3 mins hot shower followed by 1 min cold x 3 rounds
+3. Parasympathetic Down-Regulation: 10 mins 4-7-8 box breathing prior to sleep
+4. Active Tissue Flush: 20 mins low-intensity dynamic joint mobility & foam rolling
+
+🎯 AUTOMATICALLY SYNCED TO PRANA GOAL ENGINE:
+Restorative sleep and autonomic recovery targets have been logged to your Goal Engine.`;
+      }
+      // 5. User synthesized a specific goal
+      else if (synthesizedGoal) {
+        if (coachMode === "strict") {
+          responseText = `🎯 TARGET LOCKED & TRANSFERRED TO PRANA GOAL ENGINE.\n\nListen up, ${activeName}. I have formulated your "${synthesizedGoal.title}" protocol into a strict ${synthesizedGoal.timeline_weeks}-week progression. Baseline: ${synthesizedGoal.baseline} ${synthesizedGoal.unit} ➔ Target: ${synthesizedGoal.target} ${synthesizedGoal.unit}.\n\nYour 4 phase milestones and weekly disciplines have been synchronized into your Goal Engine. Stop talking and start executing.`;
+        } else if (coachMode === "professional") {
+          responseText = `🎯 PROTOCOL SYNCHRONIZED WITH PRANA GOAL ENGINE.\n\nDeterministic ${synthesizedGoal.timeline_weeks}-week trajectory established for ${activeName} on "${synthesizedGoal.title}". Calibrated for target ${synthesizedGoal.target} ${synthesizedGoal.unit} with baseline ${synthesizedGoal.baseline} ${synthesizedGoal.unit}. Milestones and weekly neuromuscular actions have been saved directly to your Goal Engine.`;
+        } else if (coachMode === "dietitian") {
+          responseText = `🎯 NUTRITION & METABOLIC TARGET SYNCED.\n\n${activeName}, your "${synthesizedGoal.title}" protocol is registered. Progressive weekly actions and body composition thresholds have been committed to your PRANA Goal Engine.`;
+        } else {
+          responseText = `🎯 EXCELLENT GOAL, ${activeName}! TRANSFERRED TO GOAL ENGINE.\n\nI've mapped out a motivating ${synthesizedGoal.timeline_weeks}-week plan for "${synthesizedGoal.title}". We're targeting ${synthesizedGoal.target} ${synthesizedGoal.unit}. Your milestones are ready in your Goal Engine!`;
         }
       } else if (coachMode === "strict") {
         if (explicitVerdict) {
-          responseText = `Your verdict ("${explicitVerdict}") is noted. But your biometric reality shows lagging cardio and sleep inconsistency. We cut the excuses today: 1) 40 mins low-impact aerobic flush, 2) Strict 22:00 sleep curfew, 3) 2.2g/kg protein intake. Execute without question.`;
+          responseText = `Your verdict ("${explicitVerdict}") is noted, ${activeName}. But your biometric reality shows lagging cardio and sleep inconsistency. We cut the excuses today: 1) 40 mins low-impact aerobic flush, 2) Strict 22:00 sleep curfew, 3) 2.2g/kg protein intake. Execute without question.`;
         } else if (lower.includes("sore") || lower.includes("fatigue") || lower.includes("tired")) {
-          responseText = "Soreness is muscular adaptation; joint pain is technical failure. Do not skip training. Execute 20 minutes of targeted foam rolling, dynamic hip mobility, and complete Zone 2 aerobic flush. Zero excuses.";
+          responseText = `Soreness is muscular adaptation; joint pain is technical failure, ${activeName}. Do not skip training. Execute 20 minutes of targeted foam rolling, dynamic hip mobility, and complete Zone 2 aerobic flush. Zero excuses.`;
         } else {
-          responseText = `Readiness is ${readiness}/100. That gives you no excuse for sloppy mechanics. Lock out every repetition with precision or don't count the set.`;
+          responseText = `Readiness is ${readiness}/100, ${activeName}. That gives you no excuse for sloppy mechanics. Lock out every repetition with precision or don't count the set.`;
         }
       } else if (coachMode === "professional") {
         if (explicitVerdict) {
-          responseText = `Synthesizing your verdict with physiological indicators: your reported fatigue correlates with elevated hs-CRP and a 5.5h sleep window, blunting growth hormone release. Immediate prescription: Zone 2 cardiac recovery (HR 125-140 bpm) and magnesium glycinate pre-sleep.`;
+          responseText = `Synthesizing your verdict with physiological indicators, ${activeName}: your reported fatigue correlates with elevated hs-CRP and a 5.5h sleep window, blunting growth hormone release. Immediate prescription: Zone 2 cardiac recovery (HR 125-140 bpm) and magnesium glycinate pre-sleep.`;
         } else {
-          responseText = `Your Digital Twin telemetry reflects autonomic equilibrium with Readiness at ${readiness}/100. Heart rate variability and musculoskeletal tolerance recommend steady-state moderate stimulus today.`;
+          responseText = `Your Digital Twin telemetry reflects autonomic equilibrium with Readiness at ${readiness}/100, ${activeName}. Heart rate variability and musculoskeletal tolerance recommend steady-state moderate stimulus today.`;
         }
       } else if (coachMode === "lenient") {
-        responseText = "You're making steady, awesome progress. Don't beat yourself up for having off-days. Listen to your body, prioritize restorative rest, and we'll hit your goals sustainably together!";
+        responseText = `You're making steady, awesome progress, ${activeName}! Don't beat yourself up for having off-days. Listen to your body, prioritize restorative rest, and we'll hit your goals sustainably together!`;
       } else if (coachMode === "dietitian") {
-        responseText = `Dietitian Protocol for ${athleteWeight}kg athlete (${trainingGoal.toUpperCase()}): Target ${customMacroTarget?.calories} kcal/day. Distribution: ${customMacroTarget?.protein}g Protein, ${customMacroTarget?.carbs}g Complex Carbs, ${customMacroTarget?.fats}g Healthy Fats, and ${customMacroTarget?.waterLiters}L Hydration.`;
+        responseText = `Dietitian Protocol for ${athleteWeight}kg athlete (${activeName} - ${trainingGoal.toUpperCase()}): Target ${customMacroTarget?.calories} kcal/day. Distribution: ${customMacroTarget?.protein}g Protein, ${customMacroTarget?.carbs}g Complex Carbs, ${customMacroTarget?.fats}g Healthy Fats, and ${customMacroTarget?.waterLiters}L Hydration.`;
       }
 
       setMessages((prev) => [
@@ -662,7 +946,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
           sender: "coach",
           text: responseText,
           time: timeNow,
-          tag: synthesizedGoal ? "GOAL_ENGINE_SYNCED" : `${coachMode.toUpperCase()}_PROTOCOL`,
+          tag: synthesizedGoal ? "GOAL_ENGINE_SYNCED" : (isJackGreeting ? "GREETING_RESPONSE" : `${coachMode.toUpperCase()}_PROTOCOL`),
           mode: coachMode,
           goalData: synthesizedGoal,
         },
@@ -1312,6 +1596,20 @@ export const AICoachView: React.FC<AICoachProps> = ({
                       </button>
                     </div>
                   )}
+
+                  {/* IN-CHAT OPTION TO SET ANY ADVICE AS GOAL IN GOAL ENGINE */}
+                  {!m.goalData && m.sender === "coach" && (
+                    <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-end">
+                      <button
+                        onClick={() => handleConvertMessageToGoal(m.text, idx)}
+                        className="px-2.5 py-1 bg-[#161F1B] hover:bg-[#27332D] text-[#B7F34A] border border-[#B7F34A]/30 hover:border-[#B7F34A]/60 rounded-lg text-[10px] font-mono font-medium transition-all flex items-center gap-1 cursor-pointer"
+                        title="Transfer this advice or plan into PRANA Goal Engine"
+                      >
+                        <Target className="w-3 h-3 text-[#B7F34A]" />
+                        <span>Set as Goal in Goal Engine</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <span className="text-[9px] text-slate-600 mt-1 font-mono px-1">
                   {m.time}
@@ -1329,27 +1627,81 @@ export const AICoachView: React.FC<AICoachProps> = ({
             <div ref={chatBottomRef} />
           </div>
 
-          {/* Chat Input */}
+          {/* Chat Input Area */}
           <div className="p-3.5 border-t border-slate-800 bg-slate-900/60">
+            {/* Quick Powers & Goal Engine Action Ribbon */}
+            <div className="flex flex-wrap items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-800/80">
+              <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1 mr-1">
+                <Zap className="w-3 h-3 text-amber-400" />
+                Coach Powers:
+              </span>
+              <button
+                type="button"
+                onClick={() => handleQuickAction("diet")}
+                disabled={isTyping}
+                className="px-2.5 py-1 rounded-lg bg-[#161F1B] hover:bg-[#27332D] border border-emerald-500/30 hover:border-emerald-400 text-emerald-300 text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Utensils className="w-3 h-3 text-emerald-400" />
+                <span>Create Diet Plan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAction("fitness")}
+                disabled={isTyping}
+                className="px-2.5 py-1 rounded-lg bg-[#161F1B] hover:bg-[#27332D] border border-blue-500/30 hover:border-blue-400 text-blue-300 text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Dumbbell className="w-3 h-3 text-blue-400" />
+                <span>Build Fitness Split</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAction("recovery")}
+                disabled={isTyping}
+                className="px-2.5 py-1 rounded-lg bg-[#161F1B] hover:bg-[#27332D] border border-purple-500/30 hover:border-purple-400 text-purple-300 text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Moon className="w-3 h-3 text-purple-400" />
+                <span>Recovery &amp; Sleep</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAction("goal")}
+                disabled={isTyping}
+                className="px-2.5 py-1 rounded-lg bg-[#161F1B] hover:bg-[#27332D] border border-[#B7F34A]/40 hover:border-[#B7F34A] text-[#B7F34A] text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ml-auto"
+              >
+                <Target className="w-3 h-3 text-[#B7F34A]" />
+                <span>Set Goal in Engine</span>
+              </button>
+            </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder={`Ask Coach Jack (${coachMode} advice, why you're unfit, nutrition)...`}
+                placeholder={`Ask Coach Jack (say "Hey Jack", request diet plan, fitness split, or a goal)...`}
                 value={inputMsg}
                 onChange={(e) => setInputMsg(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60 transition-colors"
               />
               <button
+                type="button"
+                onClick={handleSetGoalFromInput}
+                disabled={isTyping}
+                title="Lock and transfer current target straight into PRANA Goal Engine"
+                className="px-3.5 py-2.5 bg-[#161F1B] hover:bg-[#27332D] text-[#B7F34A] border border-[#B7F34A]/50 hover:border-[#B7F34A] font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm"
+              >
+                <Target className="w-4 h-4 text-[#B7F34A]" />
+                <span className="hidden sm:inline">Set Goal</span>
+              </button>
+              <button
                 onClick={() => handleSendMessage()}
                 disabled={!inputMsg.trim() || isTyping}
-                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-slate-950 font-bold rounded-xl transition-all flex items-center justify-center shadow-lg shadow-amber-500/20"
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-slate-950 font-bold rounded-xl transition-all flex items-center justify-center shadow-lg shadow-amber-500/20 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
             <div className="text-[10px] text-slate-500 mt-2 text-center font-mono">
-              Current Persona: <strong className="text-slate-300 uppercase">{coachMode}</strong> &bull; Biometric Telemetry Linked &bull; Groq Ultra-Fast Inference
+              Athlete: <strong className="text-[#B7F34A] uppercase">{userName}</strong> &bull; Mode: <strong className="text-slate-300 uppercase">{coachMode}</strong> &bull; Biometric Telemetry Grounded
             </div>
           </div>
         </div>
