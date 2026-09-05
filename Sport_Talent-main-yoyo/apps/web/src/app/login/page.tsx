@@ -245,7 +245,7 @@ export default function Login() {
               }}
               className="text-sm font-medium text-[#25D9D0] hover:text-[#B7F34A] transition-colors"
             >
-              {resetMode ? 'Back to Sign In' : 'Forgot Password?'}
+              {resetMode ? 'Back to Log In' : 'Forgot Password?'}
             </button>
           </div>
 
@@ -312,7 +312,7 @@ export default function Login() {
                     Authenticating...
                   </span>
                 ) : (
-                  'Sign In'
+                  'Log In'
                 )}
               </button>
             </>
