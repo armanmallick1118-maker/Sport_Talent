@@ -86,11 +86,11 @@ export const PranaHome: React.FC = () => {
 
           <button
             onClick={handleLogout}
-            className="px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/50 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-red-500/40 bg-red-500/15 text-red-400 hover:bg-red-500/25 hover:text-red-300 hover:border-red-500/60 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm cursor-pointer"
             title="Log Out of PRANA"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Log Out</span>
+            <LogOut className="w-3.5 h-3.5 text-red-400" />
+            <span>Log Out</span>
           </button>
 
           <Link
@@ -360,7 +360,7 @@ export const PranaHome: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5 sm:gap-6 flex-wrap justify-center">
             <Link href="/dashboard" className="hover:text-white transition-colors">
               Workspace
             </Link>
@@ -373,6 +373,14 @@ export const PranaHome: React.FC = () => {
             <Link href="/dashboard?view=profile" className="hover:text-white transition-colors">
               Profile
             </Link>
+            <button
+              onClick={handleLogout}
+              className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 cursor-pointer"
+              title="Sign out of PRANA"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Log Out</span>
+            </button>
           </div>
         </div>
       </footer>
