@@ -30,3 +30,11 @@ pip-delete-this-directory.txt
 # Prisma
 *.db
 *.db-journal
+
+ai-pipeline-local/venv/
+ai-pipeline-local/uploads/
+__pycache__/
+ 
+.next/
+*.log
+

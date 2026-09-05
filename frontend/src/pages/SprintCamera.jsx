@@ -81,26 +81,25 @@ export default function SprintCamera() {
     formData.append('file', blob, 'sprint.webm');
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
-      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'http://localhost:8002';
+      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/analyze`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const sessionId = uploadRes.data.session_id;
-
-      if (!sessionId) throw new Error("No session ID returned from upload");
-
-      setProgressStatus('AI analyzing motion (this may take a few seconds)...');
-      await axios.post(`${aiBaseUrl}/api/v1/process`, { session_id: sessionId });
+      
+      const scores = uploadRes.data.data;
+      if (!scores) throw new Error("No scores returned from AI Pipeline");
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {
-        navigate(`/test/sprint/result/${sessionId}`);
+        // Pass the scores via state
+        navigate(`/test/sprint/result/new`, { state: { scores } });
       }, 500);
       
     } catch (err) {
-      console.error("MediaPipeline Error:", err);
+      console.error("AI Error:", err);
       setIsProcessing(false);
-      setError("Failed to process video with AI. Ensure MediaPipeline is running on port 8001.");
+      const serverMsg = err.response?.data?.error;
+      setError(serverMsg ? `ATHENA-MOTION Error: ${serverMsg}` : "Failed to process video with AI. Ensure ATHENA-MOTION Pipeline is running on port 8002.");
     }
   };
 
@@ -115,25 +114,23 @@ export default function SprintCamera() {
     formData.append('file', file);
 
     try {
-      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || '/ml';
-      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/upload`, formData, {
+      const aiBaseUrl = import.meta.env.VITE_AI_API_URL || 'http://localhost:8002';
+      const uploadRes = await axios.post(`${aiBaseUrl}/api/v1/analyze`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const sessionId = uploadRes.data.session_id;
-
-      if (!sessionId) throw new Error("No session ID returned from upload");
-
-      setProgressStatus('AI analyzing uploaded motion (this may take a few seconds)...');
-      await axios.post(`${aiBaseUrl}/api/v1/process`, { session_id: sessionId });
+      
+      const scores = uploadRes.data.data;
+      if (!scores) throw new Error("No scores returned from AI Pipeline");
 
       setProgressStatus('Analysis complete! Redirecting...');
       setTimeout(() => {
-        navigate(`/test/sprint/result/${sessionId}`);
+        navigate(`/test/sprint/result/new`, { state: { scores } });
       }, 500);
     } catch (err) {
-      console.error("MediaPipeline Error:", err);
+      console.error("AI Error:", err);
       setIsProcessing(false);
-      setError("Failed to process uploaded video with AI. Ensure MediaPipeline is running on port 8001.");
+      const serverMsg = err.response?.data?.error;
+      setError(serverMsg ? `ATHENA-MOTION Error: ${serverMsg}` : "Failed to process uploaded video with AI. Ensure ATHENA-MOTION Pipeline is running on port 8002.");
     }
   };
 
