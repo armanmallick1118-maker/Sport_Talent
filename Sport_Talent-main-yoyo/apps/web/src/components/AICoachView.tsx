@@ -112,14 +112,7 @@ export const AICoachView: React.FC<AICoachProps> = ({
   const [trainingGoal, setTrainingGoal] = useState<"hypertrophy" | "endurance" | "fat_loss" | "maintenance">("hypertrophy");
   const [customMacroTarget, setCustomMacroTarget] = useState<any>(null);
 
-  // Unfitness Verdict Matching Studio State
-  const [userVerdict, setUserVerdict] = useState("");
-  const [showVerdictStudio, setShowVerdictStudio] = useState(false);
-  const [isAuditing, setIsAuditing] = useState(false);
-
-  // Goal Engine Formulation & Sync State
-  const [showGoalSynthesizer, setShowGoalSynthesizer] = useState(false);
-  const [goalCustomPrompt, setGoalCustomPrompt] = useState("");
+  // Real-time Goal Engine Sync Notification State
   const [goalNotification, setGoalNotification] = useState<string | null>(null);
 
   // Navigate to Goal Engine helper
@@ -579,98 +572,28 @@ export const AICoachView: React.FC<AICoachProps> = ({
         true
       );
     } else if (action === "goal") {
-      setShowGoalSynthesizer(true);
+      handleSendMessage(
+        `Synthesize a personalized high-priority athletic goal plan for me (${currentName}) and transfer it to my Goal Engine`,
+        undefined,
+        true
+      );
     }
   };
 
   // Convert input text into an active goal
   const handleSetGoalFromInput = () => {
+    const currentName = resolveUserName();
     if (!inputMsg.trim()) {
-      setShowGoalSynthesizer(true);
+      handleSendMessage(
+        `Synthesize a high-priority athletic goal plan for me (${currentName}) and transfer it to my Goal Engine`,
+        undefined,
+        true
+      );
       return;
     }
     const text = inputMsg;
     setInputMsg("");
     handleSendMessage(`Lock and transfer this target to my PRANA Goal Engine: "${text}"`, undefined, true);
-  };
-
-  // Run Biometric & Unfitness Diagnostic Audit
-  const handleRunDiagnosticAudit = async () => {
-    setIsAuditing(true);
-    setIsTyping(true);
-    setShowVerdictStudio(true);
-
-    const timeNow = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: "user",
-        text: "⚡ [SYSTEM DIRECTIVE]: Execute full biometric & kinematic diagnostic audit on my telemetry data. Identify where I am most unfit and cross-examine me.",
-        time: timeNow,
-      },
-    ]);
-
-    try {
-      const telemetry = gatherAllAppData();
-      const token = typeof window !== "undefined" ? localStorage.getItem("athena_token") : null;
-
-      const res = await fetch("http://127.0.0.1:8000/api/v1/ai-suggestions/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          action: "audit_unfitness",
-          mode: coachMode,
-          telemetry,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const replyText = data.data?.content;
-        if (replyText) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "coach",
-              text: replyText,
-              time: timeNow,
-              tag: "DIAGNOSTIC_AUDIT",
-              mode: coachMode,
-            },
-          ]);
-          return;
-        }
-      }
-      throw new Error("Audit failed");
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "coach",
-          text: `[AUDIT RESULT]: Your Cardio score (${twinData?.scores?.cardio || 68}/100) and Mobility (${twinData?.scores?.mobility || 64}/100) are trailing your strength baseline. Why are you lagging here? Enter your verdict below so we can formulate your corrective protocol.`,
-          time: timeNow,
-          tag: "LOCAL_AUDIT_FALLBACK",
-          mode: coachMode,
-        },
-      ]);
-    } finally {
-      setIsTyping(false);
-      setIsAuditing(false);
-    }
-  };
-
-  // Submit User Verdict & Synthesize Action Plan
-  const handleSubmitVerdict = async () => {
-    if (!userVerdict.trim()) return;
-    const verdictToSubmit = userVerdict;
-    setUserVerdict("");
-    setShowVerdictStudio(false);
-
-    const promptText = `Here is my verdict on why I have been struggling or feel unfit: "${verdictToSubmit}". Match this with your analysis and give me my exact corrective protocol.`;
-    await handleSendMessage(promptText, verdictToSubmit);
   };
 
   const handleSendMessage = async (customPrompt?: string, explicitVerdict?: string, isGoalFormulation?: boolean) => {
@@ -1039,50 +962,6 @@ Restorative sleep and autonomic recovery targets have been logged to your Goal E
         </div>
       </div>
 
-      {/* HOLISTIC DIAGNOSTIC & UNFITNESS VERDICT BANNER */}
-      <div className="p-4 bg-gradient-to-r from-amber-950/40 via-slate-900 to-indigo-950/40 rounded-2xl border border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shrink-0">
-            <Stethoscope className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              Cross-App Biometric Audit &amp; Verdict Matching
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Active Telemetry Harvest
-              </span>
-            </h3>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Coach Jack cross-examines your Digital Twin, Readiness (74), hs-CRP, and CV Kinematics against your own verdict.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <button
-            onClick={handleRunDiagnosticAudit}
-            disabled={isAuditing}
-            className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 shrink-0 w-full md:w-auto"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isAuditing ? "animate-spin" : ""}`} />
-            Run Unfitness Diagnostic Audit
-          </button>
-          <button
-            onClick={() => setShowGoalSynthesizer(!showGoalSynthesizer)}
-            className="px-3.5 py-2.5 bg-[#111815] hover:bg-[#1A231F] border border-[#B7F34A]/50 text-[#B7F34A] hover:text-[#c9ff5e] font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
-          >
-            <Target className="w-3.5 h-3.5 text-[#B7F34A]" />
-            {showGoalSynthesizer ? "Close Goal Studio" : "Formulate Goal Protocol"}
-          </button>
-          <button
-            onClick={() => setShowVerdictStudio(!showVerdictStudio)}
-            className="px-3 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Sliders className="w-3.5 h-3.5 text-amber-400" />
-            {showVerdictStudio ? "Close Verdict Studio" : "Open Verdict Studio"}
-          </button>
-        </div>
-      </div>
-
       {/* REAL-TIME GOAL TRANSFER NOTIFICATION */}
       {goalNotification && (
         <div className="p-3.5 bg-[#111815] border border-[#B7F34A]/60 rounded-xl flex items-center justify-between gap-3 text-xs text-[#B7F34A] animate-in fade-in shadow-lg">
@@ -1092,182 +971,11 @@ Restorative sleep and autonomic recovery targets have been logged to your Goal E
           </div>
           <button
             onClick={handleNavigateToGoals}
-            className="px-3 py-1.5 bg-[#B7F34A] text-[#0B100E] font-bold text-xs rounded-lg hover:bg-[#c9ff5e] transition-colors flex items-center gap-1 shrink-0"
+            className="px-3 py-1.5 bg-[#B7F34A] text-[#0B100E] font-bold text-xs rounded-lg hover:bg-[#c9ff5e] transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
           >
             <span>Open Goal Engine</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
-        </div>
-      )}
-
-      {/* EXPANDABLE GOAL PROTOCOL SYNTHESIZER STUDIO */}
-      {showGoalSynthesizer && (
-        <div className="p-5 bg-[#0B100E] rounded-2xl border border-[#B7F34A]/40 space-y-4 animate-in fade-in slide-in-from-top duration-300 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[#27332D] pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#B7F34A] animate-pulse"></span>
-              <h4 className="text-xs font-bold text-[#B7F34A] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                <Target className="w-4 h-4" />
-                Coach Jack Goal Engine Auto-Transfer Studio
-              </h4>
-            </div>
-            <span className="text-[11px] font-mono text-[#A4AEA8]">
-              Direct Sync to PRANA Goal Engine
-            </span>
-          </div>
-
-          <p className="text-xs text-[#A4AEA8] leading-relaxed">
-            Select an athletic preset or enter your target. Coach Jack will calibrate the progressive overload milestones according to your Digital Twin telemetry and morning readiness score, then automatically lock and transfer it straight into your <strong className="text-white">PRANA Goal Engine</strong>.
-          </p>
-
-          {/* Athletic Presets */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              {
-                title: "Sub-24 Min 5km Aerobic Engine",
-                category: "ENDURANCE",
-                metric: "24.0 mins",
-                prompt: "Synthesize an 8-week Sub-24 Min 5km Aerobic Engine progression protocol for me and transfer to Goal Engine.",
-              },
-              {
-                title: "Upper Body: 20 Strict Pull-Ups",
-                category: "STRENGTH",
-                metric: "20 reps",
-                prompt: "Formulate a 10-week protocol to reach 20 strict full-range pull-ups and sync it with Goal Engine.",
-              },
-              {
-                title: "Century Bench Press (100kg 1RM)",
-                category: "STRENGTH",
-                metric: "100.0 kg",
-                prompt: "Create an 8-week progressive overload protocol to hit a 100kg 1-Rep Max bench press.",
-              },
-              {
-                title: "Sub-15% Body Fat Definition",
-                category: "BODY_COMP",
-                metric: "14.5% BF",
-                prompt: "Synthesize a 12-week nutritional deficit and metabolic partitioning goal to achieve 14.5% body fat.",
-              },
-              {
-                title: "Deep Squat & Hip Mobility Restore",
-                category: "MOBILITY",
-                metric: "100/100 index",
-                prompt: "Formulate a 6-week mobility restoration goal to master full-depth unassisted squats and thoracic extension.",
-              },
-            ].map((preset, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setShowGoalSynthesizer(false);
-                  handleSendMessage(preset.prompt, undefined, true);
-                }}
-                className="text-left p-3 rounded-xl bg-[#111815] hover:bg-[#1A231F] border border-[#27332D] hover:border-[#B7F34A]/60 transition-all group cursor-pointer"
-              >
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#A4AEA8] mb-1">
-                  <span className="text-[#B7F34A]">{preset.category}</span>
-                  <span className="text-white font-bold">{preset.metric}</span>
-                </div>
-                <div className="text-xs font-semibold text-white group-hover:text-[#B7F34A] transition-colors">
-                  {preset.title}
-                </div>
-                <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
-                  <span>Synthesize &amp; Sync</span>
-                  <ArrowRight className="w-3 h-3 text-[#B7F34A] group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Custom Goal Prompt */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#27332D]">
-            <input
-              type="text"
-              placeholder="Or type custom athletic goal (e.g. Run 10km under 50 mins, 140kg Deadlift)..."
-              value={goalCustomPrompt}
-              onChange={(e) => setGoalCustomPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && goalCustomPrompt.trim()) {
-                  const p = goalCustomPrompt;
-                  setGoalCustomPrompt("");
-                  setShowGoalSynthesizer(false);
-                  handleSendMessage(p, undefined, true);
-                }
-              }}
-              className="flex-1 bg-[#111815] border border-[#27332D] rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#B7F34A]"
-            />
-            <button
-              onClick={() => {
-                if (goalCustomPrompt.trim()) {
-                  const p = goalCustomPrompt;
-                  setGoalCustomPrompt("");
-                  setShowGoalSynthesizer(false);
-                  handleSendMessage(p, undefined, true);
-                }
-              }}
-              disabled={!goalCustomPrompt.trim()}
-              className="px-4 py-2 bg-[#B7F34A] hover:bg-[#c9ff5e] disabled:opacity-30 text-[#0B100E] font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-            >
-              <Target className="w-3.5 h-3.5" />
-              <span>Lock &amp; Transfer to Goal Engine</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* EXPANDABLE UNFITNESS VERDICT STUDIO */}
-      {showVerdictStudio && (
-        <div className="p-5 bg-slate-900/90 rounded-2xl border border-amber-500/40 space-y-4 animate-in fade-in slide-in-from-top duration-300 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-              <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">
-                Athlete Verdict Submission: Why Are You Unfit / Struggling?
-              </h4>
-            </div>
-            <span className="text-[11px] text-slate-400">
-              Matched against: Twin v1 &bull; Sleep: 7.8h &bull; hs-CRP: 0.8
-            </span>
-          </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Tell Coach Jack in your own words why you think your cardio, stamina, or flexibility is lagging. Are you battling sleep deficits, work stress, knee/joint pain, or poor nutrition? Coach Jack will match your self-assessment against the physical numbers.
-          </p>
-
-          {/* Quick Preset Verdict Chips */}
-          <div className="flex flex-wrap gap-2 text-[11px]">
-            <span className="text-slate-400 self-center font-mono text-[10px]">Quick Presets:</span>
-            {[
-              "Late work shifts and sleep deprivation (under 6h)",
-              "Knee/joint soreness when running on hard surfaces",
-              "Skipping cardio intervals due to breathing fatigue",
-              "Dietary inconsistency & high-sugar stress snacking",
-            ].map((preset, pIdx) => (
-              <button
-                key={pIdx}
-                onClick={() => setUserVerdict(preset)}
-                className="px-2.5 py-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-lg text-slate-300 transition-all text-[11px]"
-              >
-                &ldquo;{preset}&rdquo;
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <textarea
-              rows={2}
-              value={userVerdict}
-              onChange={(e) => setUserVerdict(e.target.value)}
-              placeholder="State your verdict here (e.g. 'I’ve been working 12-hour shifts, sleeping only 5.5 hours, and my knees flare up on pavement...')"
-              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/60"
-            />
-            <button
-              onClick={handleSubmitVerdict}
-              disabled={!userVerdict.trim() || isTyping}
-              className="px-5 py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 shrink-0 self-end sm:self-stretch"
-            >
-              <Check className="w-4 h-4" />
-              Submit Verdict &amp; Match
-            </button>
-          </div>
         </div>
       )}
 
@@ -1498,15 +1206,8 @@ Restorative sleep and autonomic recovery targets have been logged to your Goal E
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowVerdictStudio(!showVerdictStudio)}
-                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-[11px] font-medium transition-colors flex items-center gap-1"
-              >
-                <Sliders className="w-3 h-3" />
-                Verdict Studio
-              </button>
-              <button
                 onClick={clearChat}
-                className="px-2.5 py-1 text-slate-400 hover:text-red-400 hover:bg-red-950/30 rounded border border-transparent hover:border-red-900/50 text-[11px] font-medium transition-colors flex items-center gap-1"
+                className="px-2.5 py-1 text-slate-400 hover:text-red-400 hover:bg-red-950/30 rounded border border-transparent hover:border-red-900/50 text-[11px] font-medium transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
                 Reset

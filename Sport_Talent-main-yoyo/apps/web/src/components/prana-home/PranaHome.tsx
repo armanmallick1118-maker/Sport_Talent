@@ -19,10 +19,23 @@ import {
   ArrowDown,
   Activity,
   Award,
+  LogOut,
 } from "lucide-react";
 
 export const PranaHome: React.FC = () => {
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("user");
+    } catch {}
+    window.location.href = "/login";
+  };
 
   const scrollToOrbit = () => {
     const el = document.getElementById("prana-orbit-section");
@@ -60,15 +73,24 @@ export const PranaHome: React.FC = () => {
           </div>
         </Link>
 
-        {/* Right: Theme Customizer & Enter Workspace */}
-        <div className="flex items-center gap-3">
+        {/* Right: Theme Customizer, Enter Workspace & Logout */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <button
             onClick={() => setIsThemeModalOpen(true)}
-            className="px-3 py-1.5 rounded-xl border border-[#27332D] bg-[#111815] text-[#A4AEA8] hover:text-[#F3F5F0] hover:border-[#25D9D0] transition-all flex items-center gap-1.5 text-xs font-mono"
+            className="px-3 py-1.5 rounded-xl border border-[#27332D] bg-[#111815] text-[#A4AEA8] hover:text-[#F3F5F0] hover:border-[#25D9D0] transition-all flex items-center gap-1.5 text-xs font-mono cursor-pointer"
             title="Theme Engine"
           >
             <Palette className="w-3.5 h-3.5 text-[#25D9D0]" />
             <span className="hidden sm:inline">Theme</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/50 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm cursor-pointer"
+            title="Log Out of PRANA"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Log Out</span>
           </button>
 
           <Link
